@@ -57,7 +57,8 @@ export default async function handler(req, res) {
         publishedDate: v.publishedDate
       }));
 
-    const webResults = searchResults.results.filter(r => !videos.includes(r));
+    const videoUrls = new Set(videos.map(v => v.url));
+    const webResults = searchResults.results.filter(r => !videoUrls.has(r.url));
 
     // ── STEP 2: Scrape top pages (if mode=full) ──
     let scraped = [];
