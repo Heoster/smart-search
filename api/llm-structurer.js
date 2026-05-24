@@ -7,6 +7,9 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+// Maximum characters of raw data serialized into the prompt
+const MAX_DATA_CHARS = 6000;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -23,7 +26,7 @@ export default async function handler(req, res) {
     try { data = JSON.parse(req.query.data || '{}'); } catch { data = {}; }
   }
 
-  if (!q) {
+  if (!q || !q.trim()) {
     return res.status(400).json({ success: false, error: 'Missing q parameter' });
   }
 
@@ -36,14 +39,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Serialize and cap data to avoid token limit errors
+    let dataStr = JSON.stringify(data, null, 2);
+    if (dataStr.length > MAX_DATA_CHARS) {
+      dataStr = dataStr.substring(0, MAX_DATA_CHARS) + '\n  "...": "[data truncated]"\n}';
+    }
+
     const prompt = `You are Tillu, a data structuring assistant. Given a search query and raw data, structure it into clean, useful JSON.
 
-Query: ${q}
+Query: ${q.trim()}
 
 Raw Data:
-${JSON.stringify(data, null, 2).substring(0, 6000)}
+${dataStr}
 
-Return a JSON object with EXACTLY this schema:
+Return a JSON object with EXACTLY this schema (omit arrays that would be empty):
 {
   "answer": "a clear, direct answer to the query in 1-3 sentences",
   "summary": "a longer 2-4 sentence summary",
@@ -60,6 +69,7 @@ Return a JSON object with EXACTLY this schema:
 }
 
 Rules:
+- Respond ONLY with valid JSON — no markdown fences, no extra text
 - Only include fields that have data (omit empty arrays)
 - Keep key_points to 3-7 items
 - Keep sources to top 5 most relevant
@@ -68,51 +78,76 @@ Rules:
 - Be accurate — only use information from the raw data`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 20000);
 
-    const groqRes = await fetch(GROQ_URL, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-        max_tokens: 2048,
-        response_format: { type: 'json_object' }
-      })
-    });
-    clearTimeout(timeout);
+    let groqRes;
+    try {
+      groqRes = await fetch(GROQ_URL, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.2,
+          max_tokens: 2048,
+          response_format: { type: 'json_object' }
+        })
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!groqRes.ok) {
+      const errText = await groqRes.text().catch(() => '');
+      throw new Error(`Groq API error ${groqRes.status}: ${errText.substring(0, 200)}`);
+    }
 
     const groqData = await groqRes.json();
 
-    if (!groqData.choices || !groqData.choices[0]) {
-      throw new Error('Groq returned no choices');
+    if (!groqData.choices?.[0]?.message?.content) {
+      throw new Error('Groq returned no content');
     }
+
+    const rawContent = groqData.choices[0].message.content;
 
     let structured;
     try {
-      structured = JSON.parse(groqData.choices[0].message.content);
+      structured = JSON.parse(stripMarkdownJson(rawContent));
     } catch {
-      structured = { answer: groqData.choices[0].message.content };
+      structured = { answer: rawContent };
     }
 
     return res.status(200).json({
       success: true,
-      query: q,
+      query: q.trim(),
       structured,
       model: GROQ_MODEL
     });
 
   } catch (err) {
-    console.error('Structurer error:', err.message);
+    const isTimeout = err.name === 'AbortError';
+    const message = isTimeout
+      ? 'Groq request timed out after 20s'
+      : `Structuring failed: ${err.message}`;
+
+    console.error('[llm-structurer] Error:', message);
     return res.status(502).json({
       success: false,
-      error: 'Structuring failed: ' + err.message,
-      query: q
+      error: message,
+      query: q.trim()
     });
   }
+}
+
+// ── Strip markdown code fences (```json ... ```) from LLM output ──
+function stripMarkdownJson(str) {
+  if (!str) return str;
+  return str
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/, '')
+    .trim();
 }
