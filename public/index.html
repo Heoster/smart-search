@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tillu Smart Search</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09090b;
+      --bg2: #111113;
+      --card: #18181b;
+      --border: #27272a;
+      --border2: #3f3f46;
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 80px 20px 40px;
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%);
+    }
+    .hero-logo {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2), #d946ef);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .hero p {
+      color: var(--text2);
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+
+    /* ── Search ── */
+    .search-box {
+      max-width: 680px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 16px 56px 16px 20px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      color: var(--text);
+      font-size: 17px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+    .search-box input::placeholder { color: var(--text3); }
+    .search-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+    .search-btn:hover { opacity: 0.85; }
+    .search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Tabs ── */
+    .tabs {
+      max-width: 680px;
+      margin: 0 auto 32px;
+      display: flex;
+      gap: 4px;
+      background: var(--card);
+      border-radius: 10px;
+      padding: 4px;
+      border: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text3);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: var(--text2); }
+    .tab.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+    }
+
+    /* ── Main ── */
+    .main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* ── Loading ── */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      display: none;
+    }
+    .loading.show { display: block; }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: var(--text3); font-size: 14px; }
+
+    /* ── AI Summary ── */
+    .ai-card {
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.06));
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .ai-card.show { display: block; animation: fadeIn 0.3s; }
+    .ai-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .ai-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ai-card h3 { font-size: 16px; font-weight: 700; }
+    .ai-answer { color: var(--text2); font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+    .key-points { list-style: none; }
+    .key-points li {
+      padding: 4px 0 4px 20px;
+      position: relative;
+      color: var(--text2);
+      font-size: 14px;
+    }
+    .key-points li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── Results ── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title .count {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+
+    .result-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+      animation: fadeIn 0.3s;
+    }
+    .result-card:hover { border-color: var(--border2); }
+    .result-url {
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+    .result-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .result-title:hover { text-decoration: underline; }
+    .result-snippet { color: var(--text2); font-size: 14px; line-height: 1.5; }
+    .result-engine {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text3);
+      background: var(--bg2);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* ── Videos ── */
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .video-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+      animation: fadeIn 0.3s;
+    }
+    .video-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .video-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      background: var(--bg2);
+      display: block;
+    }
+    .video-info { padding: 10px 14px; }
+    .video-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 4px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .video-title:hover { color: var(--accent); }
+    .video-meta { font-size: 11px; color: var(--text3); }
+
+    /* ── Facts ── */
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .fact-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text2);
+      animation: fadeIn 0.3s;
+    }
+    .fact-card::before {
+      content: '💡 ';
+    }
+
+    /* ── API Box ── */
+    .api-box {
+      margin-top: 40px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .api-box h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text2); }
+    .api-code {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      color: var(--green);
+      overflow-x: auto;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+    .api-endpoints {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .api-endpoint {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+    }
+    .api-endpoint .method {
+      color: var(--green);
+      font-weight: 700;
+      margin-right: 6px;
+    }
+    .api-endpoint .path { color: var(--text2); }
+
+    /* ── Error ── */
+    .error-card {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: var(--radius);
+      padding: 20px;
+      color: var(--red);
+      margin-bottom: 20px;
+      display: none;
+    }
+    .error-card.show { display: block; animation: fadeIn 0.3s; }
+
+    /* ── Meta ── */
+    .meta-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: var(--text3);
+      flex-wrap: wrap;
+    }
+    .meta-bar span { display: flex; align-items: center; gap: 4px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      .hero { padding: 50px 16px 24px; }
+      .hero h1 { font-size: 26px; }
+      .hero p { font-size: 13px; }
+      .search-box input { font-size: 15px; padding: 14px 50px 14px 16px; }
+      .videos-grid { grid-template-columns: 1fr; }
+      .facts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-logo">🔍</div>
+    <h1>Tillu Smart Search</h1>
+    <p>AI-powered search with SearXNG + Groq synthesis + smart scraping</p>
+
+    <div class="search-box">
+      <input type="text" id="query" placeholder="Search anything..." autofocus>
+      <button class="search-btn" id="searchBtn">→</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-cat="general">🌐 All</button>
+      <button class="tab" data-cat="videos">🎬 Videos</button>
+      <button class="tab" data-cat="news">📰 News</button>
+      <button class="tab" data-cat="images">🖼 Images</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p id="loadingText">Searching...</p>
+    </div>
+
+    <div class="error-card" id="error"></div>
+
+    <div id="results" style="display:none;">
+      <div class="meta-bar" id="meta"></div>
+
+      <!-- AI Summary -->
+      <div class="ai-card" id="aiCard">
+        <div class="ai-card-header">
+          <span class="ai-badge">AI</span>
+          <h3>Summary</h3>
+        </div>
+        <div class="ai-answer" id="aiAnswer"></div>
+        <ul class="key-points" id="keyPoints"></ul>
+      </div>
+
+      <!-- Facts -->
+      <div id="factsSection" style="display:none;">
+        <div class="section-title">💡 Facts <span class="count" id="factsCount">0</span></div>
+        <div class="facts-grid" id="factsGrid"></div>
+      </div>
+
+      <!-- Videos -->
+      <div id="videosSection" style="display:none;">
+        <div class="section-title">🎬 Videos <span class="count" id="videosCount">0</span></div>
+        <div class="videos-grid" id="videosGrid"></div>
+      </div>
+
+      <!-- Web Results -->
+      <div id="webSection" style="display:none;">
+        <div class="section-title">🌐 Results <span class="count" id="resultsCount">0</span></div>
+        <div id="webResults"></div>
+      </div>
+
+      <!-- API -->
+      <div class="api-box" id="apiBox">
+        <h3>📡 API Endpoint</h3>
+        <div class="api-code" id="apiCode"></div>
+        <div class="api-endpoints">
+          <div class="api-endpoint"><span class="method">GET</span><span class="path">/api/search</span></div>
+          <div class="api-endpoint"><span class="method">GET</span><span class="path">/api/scraper</span></div>
+          <div class="api-endpoint"><span class="method">GET</span><span class="path">/api/synthesiser</span></div>
+          <div class="api-endpoint"><span class="method">GET</span><span class="path">/api/llm-structurer</span></div>
+          <div class="api-endpoint"><span class="method">GET</span><span class="path">/api/unified</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const queryInput = $('query');
+    const searchBtn = $('searchBtn');
+    const loading = $('loading');
+    const loadingText = $('loadingText');
+    const errorEl = $('error');
+    const resultsEl = $('results');
+
+    let currentCategory = 'general';
+    let currentQuery = '';
+
+    // ── Tabs ──
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentCategory = tab.dataset.cat;
+        if (currentQuery) doSearch();
+      });
+    });
+
+    // ── Search triggers ──
+    searchBtn.addEventListener('click', doSearch);
+    queryInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+    async function doSearch() {
+      const q = queryInput.value.trim();
+      if (!q) return;
+      currentQuery = q;
+
+      // Reset UI
+      errorEl.classList.remove('show');
+      resultsEl.style.display = 'none';
+      loading.classList.add('show');
+      searchBtn.disabled = true;
+
+      const steps = ['Searching SearXNG...', 'Scraping top results...', 'Synthesizing with AI...', 'Structuring output...'];
+      let step = 0;
+      const stepInterval = setInterval(() => {
+        step++;
+        if (step < steps.length) loadingText.textContent = steps[step];
+      }, 2000);
+      loadingText.textContent = steps[0];
+
+      try {
+        const url = `/api/unified?q=${encodeURIComponent(q)}&category=${currentCategory}&mode=fast`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        clearInterval(stepInterval);
+        loading.classList.remove('show');
+        searchBtn.disabled = false;
+
+        if (!data.success) {
+          errorEl.textContent = data.error || 'Search failed';
+          errorEl.classList.add('show');
+          return;
+        }
+
+        renderResults(data);
+
+      } catch (err) {
+        clearInterval(stepInterval);
+        loading.classList.remove('show');
+        searchBtn.disabled = false;
+        errorEl.textContent = 'Network error: ' + err.message;
+        errorEl.classList.add('show');
+      }
+    }
+
+    function renderResults(data) {
+      resultsEl.style.display = 'block';
+
+      // Meta
+      $('meta').innerHTML = `
+        <span>⏱ ${data.meta?.latency_ms || '?'}ms</span>
+        <span>🌐 ${data.meta?.engines_used?.length || 0} engines</span>
+        <span>📄 ${data.meta?.total_results || 0} results</span>
+        ${data.meta?.scraped_pages ? `<span>🔎 ${data.meta.scraped_pages} scraped</span>` : ''}
+      `;
+
+      // AI Summary
+      const synth = data.synthesis;
+      if (synth && synth.answer && !synth.answer.includes('GROQ_API_KEY')) {
+        $('aiCard').classList.add('show');
+        $('aiAnswer').textContent = synth.answer;
+        const points = synth.key_points || [];
+        $('keyPoints').innerHTML = points.map(p => `<li>${p}</li>`).join('');
+      } else {
+        $('aiCard').classList.remove('show');
+      }
+
+      // Structured data
+      const structured = data.structured;
+
+      // Facts
+      const facts = structured?.facts || synth?.facts || [];
+      if (facts.length) {
+        $('factsSection').style.display = 'block';
+        $('factsCount').textContent = facts.length;
+        $('factsGrid').innerHTML = facts.map(f => `<div class="fact-card">${f}</div>`).join('');
+      } else {
+        $('factsSection').style.display = 'none';
+      }
+
+      // Videos
+      const videos = data.results?.videos || (structured?.videos || []);
+      if (videos.length) {
+        $('videosSection').style.display = 'block';
+        $('videosCount').textContent = videos.length;
+        $('videosGrid').innerHTML = videos.map(v => `
+          <a href="${v.url}" target="_blank" rel="noopener" class="video-card">
+            ${v.thumbnail ? `<img class="video-thumb" src="${v.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
+            <div class="video-info">
+              <span class="video-title">${esc(v.title)}</span>
+              <div class="video-meta">${new URL(v.url).hostname}</div>
+            </div>
+          </a>
+        `).join('');
+      } else {
+        $('videosSection').style.display = 'none';
+      }
+
+      // Web Results
+      const webResults = data.results?.search || [];
+      if (webResults.length) {
+        $('webSection').style.display = 'block';
+        $('resultsCount').textContent = webResults.length;
+        $('webResults').innerHTML = webResults.map(r => `
+          <div class="result-card">
+            <div class="result-url">${esc(shortUrl(r.url))}</div>
+            <a href="${r.url}" target="_blank" rel="noopener" class="result-title">${esc(r.title)}</a>
+            <div class="result-snippet">${esc(r.snippet)}</div>
+            ${r.engine ? `<span class="result-engine">${r.engine}</span>` : ''}
+          </div>
+        `).join('');
+      } else {
+        $('webSection').style.display = 'none';
+      }
+
+      // API box
+      $('apiCode').textContent = `${location.origin}/api/unified?q=${encodeURIComponent(data.query)}&category=${data.category}&mode=fast`;
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    function shortUrl(url) {
+      try { return new URL(url).hostname + new URL(url).pathname.substring(0, 30); }
+      catch { return url; }
+    }
+  </script>
+</body>
+</html>

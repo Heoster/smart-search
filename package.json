@@ -1,0 +1,10 @@
+{
+  "name": "tillu-smart-search",
+  "version": "1.0.0",
+  "description": "AI-powered smart search with SearXNG + Groq synthesis + web scraping",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  }
+}
