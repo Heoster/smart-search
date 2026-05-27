@@ -435,7 +435,7 @@ All endpoints return a consistent error shape:
 | Variable      | Required | Default | Description |
 |---------------|----------|---------|-------------|
 | `GROQ_API_KEY` | ✅ yes  | —       | Groq API key from [console.groq.com](https://console.groq.com/keys). Without it, AI synthesis is disabled and raw results are returned. |
-| `SEARXNG_URL`  | no      | `https://searxng-9jqu.onrender.com/` | SearXNG instance base URL |
+| `SEARXNG_URL`  | no      | `https://tillu-searxng.onrender.com` | SearXNG instance base URL |
 
 Set these in **Vercel Dashboard → Project → Settings → Environment Variables**.
 
