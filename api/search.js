@@ -3,7 +3,7 @@
 // Proxies search to SearXNG
 // ──────────────────────────────────────────────
 
-const SEARXNG_URL = process.env.SEARXNG_URL || 'https://searxng-9jqu.onrender.com/';
+const SEARXNG_URL = process.env.SEARXNG_URL || 'https://searxng-9jqu.onrender.com';
 
 // Validate SEARXNG_URL at module load time so misconfiguration is caught early.
 let _searxBase;
