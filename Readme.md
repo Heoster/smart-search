@@ -3,7 +3,7 @@
 AI-powered search engine combining **SearXNG** + **Groq LLM** (llama-3.3-70b) + **smart web scraping**.  
 All endpoints are CORS-enabled and return JSON.
 
-**Base URL:** `https://your-deployment.vercel.app`
+**Base URL:** `https://YOUR_SEARXNG_URL.XYZ`
 
 ---
 
