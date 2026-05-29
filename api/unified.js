@@ -5,15 +5,19 @@
 
 const SEARXNG_URL = process.env.SEARXNG_URL || 'https://codeex123-tillu-searxng.hf.space';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// Maximum total characters of context sent to each Groq call (≈3 000 tokens)
-const MAX_CONTEXT_CHARS = 12000;
-// Maximum characters of structured data payload (≈1 500 tokens)
-const MAX_STRUCT_CHARS = 6000;
-// Output character limit for scraped page content
-const MAX_SCRAPE_CHARS = 4000;
+// Model fallback chain — if primary hits rate limit, try next
+const GROQ_MODELS = [
+  'llama-3.1-8b-instant',          // fastest, lowest TPM usage — primary
+  'llama-3.3-70b-versatile',       // fallback
+  'allam-2-7b',                    // tertiary
+];
+
+// Reduce token usage: smaller context + smaller output
+const MAX_CONTEXT_CHARS = 6000;   // was 12000 — halved to stay under TPM
+const MAX_STRUCT_CHARS  = 3000;   // was 6000
+const MAX_SCRAPE_CHARS  = 2000;   // was 4000
 
 // Video platform hostnames / URL fragments
 const VIDEO_HOSTS = new Set([
@@ -339,19 +343,78 @@ async function scrapePage(url) {
 }
 
 // ────────────────────────────────────────────────────────
+// Helper: Call Groq with model fallback chain
+// Tries each model in GROQ_MODELS until one succeeds
+// ────────────────────────────────────────────────────────
+async function groqCall(prompt, maxTokens = 800) {
+  let lastError;
+  for (const model of GROQ_MODELS) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const groqRes = await fetch(GROQ_URL, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: maxTokens,
+          response_format: { type: 'json_object' }
+        })
+      });
+
+      if (!groqRes.ok) {
+        const errText = await groqRes.text().catch(() => '');
+        // 429 = rate limit — try next model
+        if (groqRes.status === 429) {
+          console.warn(`[unified] ${model} rate limited, trying next model...`);
+          lastError = new Error(`Groq API error ${groqRes.status}: ${errText.substring(0, 100)}`);
+          continue;
+        }
+        throw new Error(`Groq API error ${groqRes.status}: ${errText.substring(0, 200)}`);
+      }
+
+      const data = await groqRes.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Groq returned no content');
+      return { content, model };
+
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        lastError = new Error(`Groq request timed out (model: ${model})`);
+        continue;
+      }
+      if (e.message?.includes('rate limit') || e.message?.includes('429')) {
+        lastError = e;
+        continue;
+      }
+      throw e; // non-rate-limit error — propagate immediately
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  throw lastError ?? new Error('All Groq models failed');
+}
+
+// ────────────────────────────────────────────────────────
 // Helper: Groq Synthesis
 // ────────────────────────────────────────────────────────
 async function groqSynthesize(query, contextItems) {
   let contextText = contextItems.map((c, i) => {
     let s = `[${i + 1}] ${c.title || 'Untitled'}`;
-    if (c.snippet) s += `\n    ${c.snippet.substring(0, 300)}`;
-    if (c.content) s += `\n    ${c.content.substring(0, 600)}`;
+    if (c.snippet) s += `\n    ${c.snippet.substring(0, 200)}`;
+    if (c.content) s += `\n    ${c.content.substring(0, 400)}`;
     if (c.url) s += `\n    Source: ${c.url}`;
     return s;
   }).join('\n\n');
 
   if (contextText.length > MAX_CONTEXT_CHARS) {
-    contextText = contextText.substring(0, MAX_CONTEXT_CHARS) + '\n[...context truncated...]';
+    contextText = contextText.substring(0, MAX_CONTEXT_CHARS) + '\n[...truncated...]';
   }
 
   const prompt = `You are Tillu, an intelligent search assistant. Synthesize the following context into a clear answer.
@@ -363,53 +426,20 @@ ${contextText}
 
 Respond ONLY with valid JSON (no markdown fences):
 {
-  "answer": "comprehensive answer in 2-4 paragraphs",
-  "key_points": ["point1", "point2", "point3", "point4", "point5"],
-  "facts": ["specific fact 1", "specific fact 2", "specific fact 3"]
+  "answer": "comprehensive answer in 2-3 paragraphs",
+  "key_points": ["point1", "point2", "point3"],
+  "facts": ["fact1", "fact2"]
 }`;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-
-  let groqRes;
-  try {
-    groqRes = await fetch(GROQ_URL, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 2048,
-        response_format: { type: 'json_object' }
-      })
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  if (!groqRes.ok) {
-    const errText = await groqRes.text().catch(() => '');
-    throw new Error(`Groq API error ${groqRes.status}: ${errText.substring(0, 200)}`);
-  }
-
-  const data = await groqRes.json();
-
-  if (!data.choices?.[0]?.message?.content) {
-    throw new Error('Groq returned no content');
-  }
+  const { content } = await groqCall(prompt, 800);
 
   try {
-    const parsed = JSON.parse(stripMarkdownJson(data.choices[0].message.content));
+    const parsed = JSON.parse(stripMarkdownJson(content));
     parsed.key_points = Array.isArray(parsed.key_points) ? parsed.key_points : [];
     parsed.facts = Array.isArray(parsed.facts) ? parsed.facts : [];
     return parsed;
   } catch {
-    return { answer: data.choices[0].message.content, key_points: [], facts: [] };
+    return { answer: content, key_points: [], facts: [] };
   }
 }
 
@@ -419,7 +449,7 @@ Respond ONLY with valid JSON (no markdown fences):
 async function groqStructure(query, rawData) {
   let dataStr = JSON.stringify(rawData, null, 2);
   if (dataStr.length > MAX_STRUCT_CHARS) {
-    dataStr = dataStr.substring(0, MAX_STRUCT_CHARS) + '\n  "...": "[data truncated]"\n}';
+    dataStr = dataStr.substring(0, MAX_STRUCT_CHARS) + '\n  "...": "[truncated]"\n}';
   }
 
   const prompt = `Structure this data into clean JSON for the query: "${query}"
@@ -427,59 +457,26 @@ async function groqStructure(query, rawData) {
 Data:
 ${dataStr}
 
-Return JSON with this schema (omit empty arrays):
+Return JSON with this schema:
 {
-  "answer": "1-3 sentence direct answer",
-  "summary": "2-4 sentence summary",
+  "answer": "1-2 sentence direct answer",
+  "summary": "2-3 sentence summary",
   "key_points": ["point1", "point2", "point3"],
   "sources": [{"title": "...", "url": "...", "snippet": "..."}],
   "videos": [{"title": "...", "url": "...", "thumbnail": "..."}],
-  "related_topics": ["topic1", "topic2", "topic3"],
+  "related_topics": ["topic1", "topic2"],
   "facts": ["fact1", "fact2"],
   "category": "query category"
 }
 
-Respond ONLY with valid JSON — no markdown fences, no extra text.`;
+Respond ONLY with valid JSON — no markdown fences.`;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-
-  let groqRes;
-  try {
-    groqRes = await fetch(GROQ_URL, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-        max_tokens: 2048,
-        response_format: { type: 'json_object' }
-      })
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  if (!groqRes.ok) {
-    const errText = await groqRes.text().catch(() => '');
-    throw new Error(`Groq API error ${groqRes.status}: ${errText.substring(0, 200)}`);
-  }
-
-  const data = await groqRes.json();
-
-  if (!data.choices?.[0]?.message?.content) {
-    throw new Error('Groq returned no content');
-  }
+  const { content } = await groqCall(prompt, 800);
 
   try {
-    return JSON.parse(stripMarkdownJson(data.choices[0].message.content));
+    return JSON.parse(stripMarkdownJson(content));
   } catch {
-    return { answer: data.choices[0].message.content };
+    return { answer: content };
   }
 }
 

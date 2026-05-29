@@ -4,11 +4,16 @@
 // ──────────────────────────────────────────────
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// Maximum total characters of context sent to Groq (≈3 000 tokens)
-const MAX_CONTEXT_CHARS = 12000;
+// Model fallback chain — tries fastest first, falls back on 429
+const GROQ_MODELS = [
+  'llama-3.1-8b-instant',
+  'llama-3.3-70b-versatile',
+  'allam-2-7b',
+];
+
+const MAX_CONTEXT_CHARS = 6000;  // reduced from 12000 to stay under TPM
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -90,24 +95,47 @@ Return this JSON object:
     const timeout = setTimeout(() => controller.abort(), 20000);
 
     let groqRes;
-    try {
-      groqRes = await fetch(GROQ_URL, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 2048,
-          response_format: { type: 'json_object' }
-        })
-      });
-    } finally {
-      clearTimeout(timeout);
+    let usedModel = GROQ_MODELS[0];
+    let lastError;
+
+    for (const model of GROQ_MODELS) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 20000);
+      try {
+        groqRes = await fetch(GROQ_URL, {
+          method: 'POST',
+          signal: ctrl.signal,
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.3,
+            max_tokens: 800,
+            response_format: { type: 'json_object' }
+          })
+        });
+        clearTimeout(t);
+        if (groqRes.status === 429) {
+          console.warn(`[synthesiser] ${model} rate limited, trying next...`);
+          lastError = new Error(`Rate limited on ${model}`);
+          groqRes = null;
+          continue;
+        }
+        usedModel = model;
+        break;
+      } catch (e) {
+        clearTimeout(t);
+        lastError = e;
+        groqRes = null;
+      }
+    }
+    clearTimeout(timeout);
+
+    if (!groqRes) {
+      throw lastError ?? new Error('All Groq models failed');
     }
 
     if (!groqRes.ok) {
@@ -142,7 +170,7 @@ Return this JSON object:
       success: true,
       query: q.trim(),
       synthesis,
-      model: GROQ_MODEL
+      model: usedModel
     });
 
   } catch (err) {
