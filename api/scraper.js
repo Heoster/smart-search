@@ -3,21 +3,9 @@
 // Smart web scraper — extracts text, title, links
 // ──────────────────────────────────────────────
 
-const MAX_OUTPUT_CHARS = 5000;
+export const MAX_OUTPUT_CHARS = 5000;
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
-  const { url } = req.query;
-
-  if (!url) {
-    return res.status(400).json({ success: false, error: 'Missing ?url= parameter' });
-  }
-
+export async function scrapePage(url) {
   // Validate URL format
   let parsedUrl;
   try {
@@ -26,7 +14,7 @@ export default async function handler(req, res) {
       throw new Error('Only http/https URLs are allowed');
     }
   } catch (e) {
-    return res.status(400).json({ success: false, error: `Invalid URL: ${e.message}` });
+    return { success: false, error: `Invalid URL: ${e.message}`, url };
   }
 
   const controller = new AbortController();
@@ -109,7 +97,7 @@ export default async function handler(req, res) {
     // Truncate at word boundary
     const truncated = truncateAtWord(text, MAX_OUTPUT_CHARS);
 
-    return res.status(200).json({
+    return {
       success: true,
       url,
       title,
@@ -118,7 +106,7 @@ export default async function handler(req, res) {
       contentLength: text.length,
       truncated: text.length > MAX_OUTPUT_CHARS,
       links
-    });
+    };
 
   } catch (err) {
     const isTimeout = err.name === 'AbortError';
@@ -127,18 +115,40 @@ export default async function handler(req, res) {
       : `Scraping failed: ${err.message}`;
 
     console.error('[scraper] Error:', message);
-    return res.status(502).json({
+    return {
       success: false,
       error: message,
       url
-    });
+    };
   } finally {
     clearTimeout(timeout);
   }
 }
 
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const { url } = req.query;
+
+  if (!url) {
+    return res.status(400).json({ success: false, error: 'Missing ?url= parameter' });
+  }
+
+  const result = await scrapePage(url);
+  
+  if (!result.success) {
+    return res.status(502).json(result);
+  }
+
+  return res.status(200).json(result);
+}
+
 // ── Decode HTML entities (named, decimal, hex) ──
-function decodeHtml(str) {
+export function decodeHtml(str) {
   if (!str) return '';
   return str
     .replace(/&amp;/gi, '&')
