@@ -7,13 +7,77 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Model fallback chain — tries fastest first, falls back on 429
-const GROQ_MODELS = [
+const LLM_MODELS = [
   'llama-3.1-8b-instant',
   'llama-3.3-70b-versatile',
-  'allam-2-7b',
+  'gpt-oss-20b',
 ];
 
 const MAX_CONTEXT_CHARS = 6000;  // reduced from 12000 to stay under TPM
+
+// ────────────────────────────────────────────────────────
+// Helper: Call LLM with model fallback chain
+// Tries each model in LLM_MODELS until one succeeds
+// ────────────────────────────────────────────────────────
+async function callLLM(prompt, maxTokens = 800) {
+  let lastError;
+  for (const model of LLM_MODELS) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000); // 20-second timeout
+
+    try {
+      if (!GROQ_API_KEY) {
+        lastError = new Error('GROQ_API_KEY is not set');
+        continue;
+      }
+
+      const llmRes = await fetch(GROQ_URL, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: maxTokens,
+          response_format: { type: 'json_object' }
+        })
+      });
+
+      if (!llmRes.ok) {
+        const errText = await llmRes.text().catch(() => '');
+        if (llmRes.status === 429) {
+          console.warn(`[synthesiser] ${model} rate limited, trying next model...`);
+          lastError = new Error(`Groq API error ${llmRes.status}: ${errText.substring(0, 100)}`);
+          continue;
+        }
+        throw new Error(`Groq API error ${llmRes.status}: ${errText.substring(0, 200)}`);
+      }
+
+      const data = await llmRes.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Groq returned no content');
+      return { content, model };
+
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        lastError = new Error(`Groq request timed out (model: ${model})`);
+        continue;
+      }
+      if (e.message?.includes('rate limit') || e.message?.includes('429')) {
+        lastError = e; // Store rate limit error to propagate if all fail
+        continue;
+      }
+      throw e; // Non-rate-limit or non-timeout error — propagate immediately
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  throw lastError ?? new Error('All Groq models failed or no API key was set');
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -51,11 +115,16 @@ export default async function handler(req, res) {
     if (Array.isArray(context)) {
       contextText = context.map((c, i) => {
         let s = `[${i + 1}] ${c.title || 'Untitled'}`;
-        if (c.snippet) s += `\n    ${c.snippet.substring(0, 300)}`;
-        if (c.content) s += `\n    ${c.content.substring(0, 800)}`;
-        if (c.url) s += `\n    Source: ${c.url}`;
+        if (c.snippet) s += `
+    ${c.snippet.substring(0, 300)}`;
+        if (c.content) s += `
+    ${c.content.substring(0, 800)}`;
+        if (c.url) s += `
+    Source: ${c.url}`;
         return s;
-      }).join('\n\n');
+      }).join('
+
+');
     } else if (typeof context === 'string') {
       contextText = context;
     }
@@ -66,7 +135,8 @@ export default async function handler(req, res) {
 
     // Hard cap to avoid token limit errors
     if (contextText.length > MAX_CONTEXT_CHARS) {
-      contextText = contextText.substring(0, MAX_CONTEXT_CHARS) + '\n[...context truncated...]';
+      contextText = contextText.substring(0, MAX_CONTEXT_CHARS) + '
+[...context truncated...]';
     }
 
     const prompt = `You are Tillu, an intelligent search assistant. Given the following search results and web content, provide a comprehensive synthesis that answers the user's query.
@@ -91,65 +161,7 @@ Return this JSON object:
   "facts": ["specific fact 1", "specific fact 2"]
 }`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
-
-    let groqRes;
-    let usedModel = GROQ_MODELS[0];
-    let lastError;
-
-    for (const model of GROQ_MODELS) {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 20000);
-      try {
-        groqRes = await fetch(GROQ_URL, {
-          method: 'POST',
-          signal: ctrl.signal,
-          headers: {
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model,
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.3,
-            max_tokens: 800,
-            response_format: { type: 'json_object' }
-          })
-        });
-        clearTimeout(t);
-        if (groqRes.status === 429) {
-          console.warn(`[synthesiser] ${model} rate limited, trying next...`);
-          lastError = new Error(`Rate limited on ${model}`);
-          groqRes = null;
-          continue;
-        }
-        usedModel = model;
-        break;
-      } catch (e) {
-        clearTimeout(t);
-        lastError = e;
-        groqRes = null;
-      }
-    }
-    clearTimeout(timeout);
-
-    if (!groqRes) {
-      throw lastError ?? new Error('All Groq models failed');
-    }
-
-    if (!groqRes.ok) {
-      const errText = await groqRes.text().catch(() => '');
-      throw new Error(`Groq API error ${groqRes.status}: ${errText.substring(0, 200)}`);
-    }
-
-    const groqData = await groqRes.json();
-
-    if (!groqData.choices?.[0]?.message?.content) {
-      throw new Error('Groq returned no content');
-    }
-
-    const rawContent = groqData.choices[0].message.content;
+    const { content: rawContent, model: usedModel } = await callLLM(prompt, 800);
 
     let synthesis;
     try {
@@ -176,7 +188,7 @@ Return this JSON object:
   } catch (err) {
     const isTimeout = err.name === 'AbortError';
     const message = isTimeout
-      ? 'Groq request timed out after 20s'
+      ? 'LLM request timed out after 20s'
       : `Synthesis failed: ${err.message}`;
 
     console.error('[synthesiser] Error:', message);
@@ -187,6 +199,10 @@ Return this JSON object:
     });
   }
 }
+
+// ────────────────────────────────────────────────────────
+// Helper: Groq Synthesis
+// ────────────────────────────────────────────────────────
 
 // ── Strip markdown code fences (```json ... ```) from LLM output ──
 function stripMarkdownJson(str) {
