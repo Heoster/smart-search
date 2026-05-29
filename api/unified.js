@@ -6,7 +6,7 @@
 const SEARXNG_URL = process.env.SEARXNG_URL || 'https://tillu-searxng.onrender.com';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
-import { scrapePage, decodeHtml, MAX_OUTPUT_CHARS as MAX_SCRAPE_CHARS } from '../scraper.js';
+import { scrapePage, decodeHtml, MAX_OUTPUT_CHARS as MAX_SCRAPE_CHARS } from './scraper.js';
 import { groqSynthesize, groqStructure } from './lib/llm.js';
 
 // Video platform hostnames / URL fragments
