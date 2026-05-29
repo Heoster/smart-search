@@ -3,22 +3,11 @@
 // Full pipeline: search → scrape → synthesize → structure
 // ──────────────────────────────────────────────
 
-const SEARXNG_URL = process.env.SEARXNG_URL || 'https://codeex123-tillu-searxng.hf.space';
+const SEARXNG_URL = process.env.SEARXNG_URL || 'https://tillu-searxng.onrender.com';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 import { scrapePage, decodeHtml, MAX_OUTPUT_CHARS as MAX_SCRAPE_CHARS } from '../scraper.js';
-
-// Model fallback chain — if primary hits rate limit, try next
-const LLM_MODELS = [
-  'llama-3.1-8b-instant',          // fastest, lowest TPM usage — primary
-  'llama-3.3-70b-versatile',       // fallback
-  'gpt-oss-20b',                   // tertiary
-];
-
-// Reduce token usage: smaller context + smaller output
-const MAX_CONTEXT_CHARS = 6000;   // was 12000 — halved to stay under TPM
-const MAX_STRUCT_CHARS  = 3000;   // was 6000
+import { groqSynthesize, groqStructure } from './lib/llm.js';
 
 // Video platform hostnames / URL fragments
 const VIDEO_HOSTS = new Set([
