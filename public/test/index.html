@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tillu Labs — Search & Testing Suite</title>
+  <meta name="description" content="Interactive testing environments for Tillu Smart Search. Optimize queries, test web scraping, and simulate AI agent reasoning.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    :root {
+      --bg: #09090b; --bg2: #111113; --card: #18181b; --border: #27272a;
+      --accent: #6366f1; --accent2: #8b5cf6; --text: #fafafa;
+      --text2: #a1a1aa; --text3: #71717a; --green: #22c55e;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); margin: 0; padding: 0;
+    }
+    .header {
+      padding: 60px 24px 40px; text-align: center;
+      background: radial-gradient(circle at 50% 0%, rgba(99,102,241,0.15) 0%, transparent 70%);
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+    .header h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header p { color: var(--text3); font-size: 16px; max-width: 600px; margin: 0 auto; }
+    
+    .grid {
+      max-width: 1100px; margin: 40px auto; padding: 0 24px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 32px; transition: transform 0.2s, border-color 0.2s; cursor: pointer;
+      text-decoration: none; color: inherit; display: flex; flex-direction: column;
+    }
+    .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+    .card-icon { font-size: 28px; margin-bottom: 16px; }
+    .card h2 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+    .card p { font-size: 14px; color: var(--text3); line-height: 1.6; flex: 1; margin-bottom: 24px; }
+    .card-footer { font-size: 13px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+    
+    .nav-bar {
+      position: sticky; top: 0; background: rgba(9,9,11,0.8); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border); z-index: 100; padding: 12px 24px;
+      display: flex; justify-content: center; gap: 32px;
+    }
+    .nav-bar a { text-decoration: none; color: var(--text3); font-size: 13px; font-weight: 600; transition: color 0.2s; }
+    .nav-bar a:hover { color: var(--text); }
+    .nav-bar a.active { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <a href="/index.html">API Tester</a>
+  <a href="/docs/index.html">Documentation</a>
+  <a href="/test/index.html" class="active">Testing Labs</a>
+  <a href="/developer.html">Developer</a>
+</div>
+
+<div class="header">
+  <h1>🧪 <span>Tillu Labs</span></h1>
+  <p>Specialized testing environments for search optimization, deep research, and agent integration.</p>
+</div>
+
+<div class="grid">
+
+  <a href="/test/search-lab.html" class="card">
+    <div class="card-icon">🔍</div>
+    <h2>Search Lab</h2>
+    <p>Optimize your queries. Test different categories (news, science, social) and see raw metadata from dozens of search engines.</p>
+    <div class="card-footer">Enter Lab →</div>
+  </a>
+
+  <a href="/test/research-lab.html" class="card">
+    <div class="card-icon">🔬</div>
+    <h2>Research Lab</h2>
+    <p>Test the deep research pipeline. Scrape live web pages, synthesize content, and evaluate the accuracy of the AI responses.</p>
+    <div class="card-footer">Enter Lab →</div>
+  </a>
+
+  <a href="/test/agent-lab.html" class="card">
+    <div class="card-icon">🤖</div>
+    <h2>Agent Lab</h2>
+    <p>Simulate how an AI agent consumes your data. View strictly structured JSON outputs and test extraction schemas.</p>
+    <div class="card-footer">Enter Lab →</div>
+  </a>
+
+</div>
+
+</body>
+</html>

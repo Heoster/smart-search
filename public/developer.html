@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heoster (Harsh) — Developer Profile & Founder of CODEEX-AI</title>
+  <meta name="description" content="Portfolio of Harsh (Heoster), a 16-year-old Full-Stack Engineer and Founder of CODEEX-AI, building the future of AI tools and education.">
+  <meta name="keywords" content="Heoster, Harsh developer, CODEEX-AI founder, Indian AI developer, full-stack engineer portfolio">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="profile">
+  <meta property="og:url" content="https://tillu-smart-search.vercel.app/developer.html">
+  <meta property="og:title" content="Heoster (Harsh) — Developer Profile">
+  <meta property="og:description" content="Founder of CODEEX-AI. Building accessible AI tools for students and developers.">
+  <meta property="og:image" content="https://heoster.vercel.app/avatar.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@The_Heoster_">
+  <meta name="twitter:title" content="Heoster (Harsh) — Developer Profile">
+  <meta name="twitter:description" content="Founder of CODEEX-AI. Building accessible AI tools for students and developers.">
+
+  <style>
+    :root {
+      --bg: #09090b; --bg2: #111113; --card: #18181b; --border: #27272a;
+      --accent: #6366f1; --accent2: #8b5cf6; --text: #fafafa;
+      --text2: #a1a1aa; --text3: #71717a; --green: #22c55e;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); margin: 0; padding: 0;
+    }
+    .nav-bar {
+      position: sticky; top: 0; background: rgba(9,9,11,0.8); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border); z-index: 100; padding: 12px 24px;
+      display: flex; justify-content: center; gap: 32px;
+    }
+    .nav-bar a { text-decoration: none; color: var(--text3); font-size: 13px; font-weight: 600; transition: color 0.2s; }
+    .nav-bar a:hover { color: var(--text); }
+    .nav-bar a.active { color: var(--accent); }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 60px 24px; }
+    
+    /* Profile Header */
+    .profile-header {
+      display: flex; align-items: center; gap: 40px; margin-bottom: 60px;
+      padding-bottom: 60px; border-bottom: 1px solid var(--border);
+    }
+    .profile-info h1 { font-size: 48px; font-weight: 800; margin-bottom: 8px; letter-spacing: -2px; }
+    .profile-info h1 span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .profile-tagline { font-size: 18px; color: var(--text2); margin-bottom: 24px; }
+    
+    .role-pills { display: flex; gap: 12px; margin-bottom: 32px; }
+    .pill { padding: 4px 12px; border-radius: 20px; background: var(--bg2); border: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--accent); }
+
+    /* Grid Layout */
+    .content-grid { display: grid; grid-template-columns: 1fr 300px; gap: 60px; }
+    
+    h2 { font-size: 24px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .about-text { font-size: 16px; line-height: 1.8; color: var(--text2); margin-bottom: 40px; }
+    
+    /* Project Cards */
+    .project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .project-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; text-decoration: none; color: inherit; transition: all 0.2s;
+    }
+    .project-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .project-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+    .project-card p { font-size: 14px; color: var(--text3); line-height: 1.5; }
+
+    /* Sidebar Items */
+    .side-section { margin-bottom: 40px; }
+    .side-label { font-size: 11px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; display: block; }
+    
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { padding: 4px 10px; border-radius: 6px; background: rgba(99,102,241,0.1); color: var(--accent); font-size: 12px; font-weight: 600; }
+
+    .social-links { display: flex; flex-direction: column; gap: 12px; }
+    .social-link {
+      display: flex; align-items: center; gap: 12px; color: var(--text2);
+      text-decoration: none; font-size: 14px; padding: 10px; border-radius: 8px;
+      background: var(--bg2); border: 1px solid var(--border); transition: all 0.2s;
+    }
+    .social-link:hover { background: var(--card); border-color: var(--accent); color: var(--text); }
+
+    @media (max-width: 800px) {
+      .profile-header { flex-direction: column; text-align: center; gap: 24px; }
+      .content-grid { grid-template-columns: 1fr; }
+      .project-grid { grid-template-columns: 1fr; }
+      .role-pills { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <a href="/index.html">API Tester</a>
+  <a href="/docs/index.html">Documentation</a>
+  <a href="/test/index.html">Testing Labs</a>
+  <a href="/developer.html" class="active">Developer</a>
+</div>
+
+<div class="container">
+
+  <div class="profile-header">
+    <div class="profile-info">
+      <h1>Harsh <span>(Heoster)</span></h1>
+      <p class="profile-tagline">Building the future of AI tools one model at a time.</p>
+      <div class="role-pills">
+        <span class="pill">Founder @CODEEX-AI</span>
+        <span class="pill">Full-Stack Engineer</span>
+        <span class="pill">AI Orchestrator</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    
+    <div class="main-content">
+      <section>
+        <h2>About</h2>
+        <div class="about-text">
+          Harsh, known online as **Heoster**, is a 16-year-old visionary developer from Uttar Pradesh, India. As the founder of **CODEEX-AI**, he is on a mission to democratize AI education and make advanced technology accessible to students regardless of their background or resources. 
+          <br><br>
+          He specializes in building AI-powered applications, multi-model assistants, and high-performance web experiences. His work focuses on bridging the gap between complex AI infrastructure and intuitive user interfaces.
+        </div>
+      </section>
+
+      <section>
+        <h2>Featured Projects</h2>
+        <div class="project-grid">
+          <a href="https://github.com/Heoster/CodeEx-AI-" class="project-card" target="_blank">
+            <h3>CODEEX AI</h3>
+            <p>A free AI chat platform featuring 35+ models from Groq, Gemini, and more. Built for students.</p>
+          </a>
+          <a href="https://heoster.github.io/jarvis/" class="project-card" target="_blank">
+            <h3>Jarvis AI</h3>
+            <p>Personal AI assistant with NLP, web search, and specialized context for Indian users.</p>
+          </a>
+          <a href="https://github.com/Heoster/codeex-v5" class="project-card" target="_blank">
+            <h3>Codeex V5</h3>
+            <p>Professional desktop GUI for Ollama with smart model management and voice synthesis.</p>
+          </a>
+          <a href="https://github.com/Heoster" class="project-card" target="_blank">
+            <h3>SOHAM Platform</h3>
+            <p>A multi-provider AI orchestration platform supporting 26+ diverse models.</p>
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <div class="sidebar">
+      <div class="side-section">
+        <span class="side-label">Technical Skills</span>
+        <div class="skill-tags">
+          <span class="tag">TypeScript</span>
+          <span class="tag">Node.js</span>
+          <span class="tag">Python</span>
+          <span class="tag">Next.js</span>
+          <span class="tag">Tailwind</span>
+          <span class="tag">LangChain</span>
+          <span class="tag">Groq</span>
+          <span class="tag">Firebase</span>
+          <span class="tag">Docker</span>
+          <span class="tag">GSAP</span>
+        </div>
+      </div>
+
+      <div class="side-section">
+        <span class="side-label">Connect</span>
+        <div class="social-links">
+          <a href="https://github.com/Heoster" class="social-link" target="_blank">GitHub</a>
+          <a href="https://x.com/The_Heoster_" class="social-link" target="_blank">Twitter / X</a>
+          <a href="https://heoster.vercel.app/" class="social-link" target="_blank">Portfolio</a>
+          <a href="https://instagram.com/codeex._.heoster" class="social-link" target="_blank">Instagram</a>
+        </div>
+      </div>
+
+      <div class="side-section">
+        <span class="side-label">Location</span>
+        <div style="font-size: 14px; color: var(--text2);">
+          Khatauli, Uttar Pradesh, India 🇮🇳
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

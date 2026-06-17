@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research Lab — Tillu Labs</title>
+  <meta name="description" content="Deep research and web scraping lab. Test mode=full pipeline and AI synthesis accuracy.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    :root {
+      --bg: #09090b; --bg2: #111113; --card: #18181b; --border: #27272a;
+      --accent: #6366f1; --accent2: #8b5cf6; --text: #fafafa;
+      --text2: #a1a1aa; --text3: #71717a; --green: #22c55e;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); margin: 0; padding: 0;
+    }
+    .top-nav {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 12px 24px; display: flex; align-items: center; gap: 20px;
+    }
+    .top-nav a { text-decoration: none; color: var(--text3); font-size: 13px; font-weight: 600; }
+    .top-nav .brand { color: var(--text); font-weight: 800; margin-right: 20px; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px; display: grid; grid-template-columns: 350px 1fr; gap: 32px; }
+    
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; }
+    .input {
+      width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px; outline: none; box-sizing: border-box;
+    }
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; font-weight: 700; cursor: pointer;
+    }
+    
+    .ai-answer {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 32px; margin-bottom: 32px; line-height: 1.8; font-size: 16px; color: var(--text2);
+    }
+    .ai-answer h2 { margin-top: 0; color: var(--text); font-size: 20px; margin-bottom: 16px; }
+    
+    .sources { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
+    .source-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px; font-size: 13px; text-decoration: none; color: inherit;
+    }
+    .source-card:hover { border-color: var(--accent); }
+    .source-title { font-weight: 700; margin-bottom: 4px; color: var(--accent); }
+    
+    .scraped-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 10px; font-weight: 800; background: rgba(34,197,94,0.1); color: var(--green);
+      margin-top: 8px;
+    }
+    
+    .skeleton { height: 20px; background: var(--bg); border-radius: 4px; margin-bottom: 12px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  </style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="/test/index.html" class="brand">🧪 Tillu Labs</a>
+  <a href="/test/search-lab.html">Search</a>
+  <a href="/test/agent-lab.html">Agent</a>
+  <a href="/developer.html">Developer</a>
+</div>
+
+<div class="container">
+  
+  <div class="sidebar">
+    <div class="card">
+      <h3 style="margin-top:0">🔬 Deep Research</h3>
+      <p style="font-size:13px; color:var(--text3)">The Research Lab uses <code>mode=full</code>. It scrapes the top 3 web pages to provide the most accurate synthesis possible.</p>
+      
+      <div class="field">
+        <label>Query / Topic</label>
+        <textarea id="q" class="input" style="height:100px; resize:none;" placeholder="e.g. Compare the performance of Rust and Go for networking..."></textarea>
+      </div>
+
+      <button class="btn" id="run">Conduct Research</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="output">
+      <div style="text-align:center; padding:100px; color:var(--text3)">
+        Enter a complex topic on the left to start the deep research pipeline.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const runBtn = document.getElementById('run');
+  const output = document.getElementById('output');
+
+  runBtn.addEventListener('click', async () => {
+    const q = document.getElementById('q').value;
+    if (!q) return alert('Enter a query');
+
+    runBtn.textContent = 'Researching...';
+    output.innerHTML = `
+      <div class="ai-answer">
+        <div class="skeleton" style="width:40%"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton" style="width:80%"></div>
+        <div style="margin-top:32px; font-size:13px; color:var(--text3)">🔍 Searching engines...</div>
+        <div style="font-size:13px; color:var(--text3)">📄 Scraping web pages...</div>
+        <div style="font-size:13px; color:var(--text3)">🧠 Synthesizing answers...</div>
+      </div>
+    `;
+
+    try {
+      const res = await fetch(`/api/unified?q=${encodeURIComponent(q)}&mode=full`);
+      const data = await res.json();
+      
+      if (!data.success) {
+        output.innerHTML = `<div class="ai-answer" style="color:var(--accent2)">Error: ${data.error}</div>`;
+      } else {
+        const synthesis = data.synthesis;
+        const search = data.results.search;
+        const scraped = data.results.scraped;
+
+        output.innerHTML = `
+          <div class="ai-answer">
+            <h2>Research Findings</h2>
+            <div>${synthesis.answer.replace(/\n/g, '<br>')}</div>
+            
+            <h3 style="margin-top:32px; font-size:16px;">Key Takeaways</h3>
+            <ul style="font-size:14px; padding-left:20px;">
+              ${synthesis.key_points.map(p => `<li>${p}</li>`).join('')}
+            </ul>
+
+            <h3 style="margin-top:32px; font-size:16px;">Verified Sources</h3>
+            <div class="sources">
+              ${search.slice(0, 4).map(s => `
+                <a href="${s.url}" class="source-card" target="_blank">
+                  <div class="source-title">${s.title}</div>
+                  <div style="font-size:11px; color:var(--text3); overflow:hidden; text-overflow:ellipsis;">${s.url}</div>
+                  ${scraped.some(p => p.url === s.url) ? `<div class="scraped-pill">FULL PAGE SCRAPED</div>` : ''}
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    } catch (err) {
+      output.innerHTML = `<div class="ai-answer" style="color:var(--accent2)">Fetch error: ${err.message}</div>`;
+    }
+    runBtn.textContent = 'Conduct Research';
+  });
+</script>
+
+</body>
+</html>

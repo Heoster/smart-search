@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Lab — Tillu Labs</title>
+  <meta name="description" content="Direct search optimization lab. Test multi-engine queries and raw metadata extraction.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    :root {
+      --bg: #09090b; --bg2: #111113; --card: #18181b; --border: #27272a;
+      --accent: #6366f1; --accent2: #8b5cf6; --text: #fafafa;
+      --text2: #a1a1aa; --text3: #71717a; --cyan: #06b6d4; --green: #22c55e;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); margin: 0; padding: 0;
+    }
+    .top-nav {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 12px 24px; display: flex; align-items: center; gap: 20px;
+    }
+    .top-nav a { text-decoration: none; color: var(--text3); font-size: 13px; font-weight: 600; }
+    .top-nav .brand { color: var(--text); font-weight: 800; margin-right: 20px; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px; display: flex; gap: 32px; }
+    
+    /* Control Panel */
+    .controls { width: 350px; flex-shrink: 0; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    .card h3 { font-size: 16px; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; }
+    .input {
+      width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px; outline: none; box-sizing: border-box;
+    }
+    .input:focus { border-color: var(--accent); }
+    
+    .radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .radio-item { flex: 1; min-width: 100px; position: relative; }
+    .radio-item input { position: absolute; opacity: 0; cursor: pointer; }
+    .radio-item label {
+      display: block; padding: 8px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; text-align: center; font-size: 12px; cursor: pointer; transition: all 0.2s;
+      margin-bottom: 0; color: var(--text2);
+    }
+    .radio-item input:checked + label { border-color: var(--accent); background: rgba(99,102,241,0.1); color: var(--accent); }
+    
+    .btn {
+      width: 100%; padding: 12px; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    /* Results */
+    .results { flex: 1; min-width: 0; }
+    .res-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; margin-bottom: 16px; display: flex; gap: 16px;
+    }
+    .res-info { flex: 1; min-width: 0; }
+    .res-title { font-size: 16px; font-weight: 700; color: var(--accent); text-decoration: none; display: block; margin-bottom: 4px; }
+    .res-url { font-size: 12px; color: var(--text3); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .res-snippet { font-size: 13px; color: var(--text2); line-height: 1.5; }
+    .res-meta { display: flex; gap: 12px; margin-top: 12px; }
+    .res-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--text3); }
+
+    .raw-view {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; font-family: 'SF Mono', monospace; font-size: 11px;
+      color: var(--green); white-space: pre-wrap; display: none;
+    }
+    .tabs { display: flex; gap: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .tab { padding: 8px 0; color: var(--text3); cursor: pointer; font-size: 13px; font-weight: 600; }
+    .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="/test/index.html" class="brand">🧪 Tillu Labs</a>
+  <a href="/index.html">Tester</a>
+  <a href="/test/research-lab.html">Research</a>
+  <a href="/test/agent-lab.html">Agent</a>
+  <a href="/developer.html">Developer</a>
+</div>
+
+<div class="container">
+  
+  <div class="controls">
+    <div class="card">
+      <h3>🔍 Search Parameters</h3>
+      
+      <div class="field">
+        <label>Query</label>
+        <input type="text" id="q" class="input" placeholder="e.g. rust programming">
+      </div>
+
+      <div class="field">
+        <label>Category</label>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="cat" id="cat-gen" value="general" checked><label for="cat-gen">General</label></div>
+          <div class="radio-item"><input type="radio" name="cat" id="cat-news" value="news"><label for="cat-news">News</label></div>
+          <div class="radio-item"><input type="radio" name="cat" id="cat-sci" value="science"><label for="cat-sci">Science</label></div>
+          <div class="radio-item"><input type="radio" name="cat" id="cat-vid" value="videos"><label for="cat-vid">Videos</label></div>
+          <div class="radio-item"><input type="radio" name="cat" id="cat-soc" value="social"><label for="cat-soc">Social</label></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Page Number</label>
+        <input type="number" id="page" class="input" value="1" min="1">
+      </div>
+
+      <button class="btn" id="run-search">Run Search</button>
+    </div>
+
+    <div class="card">
+      <h3>ℹ️ Info</h3>
+      <p style="font-size: 13px;">The Search Lab uses the <code>/api/search</code> endpoint. This is a direct proxy to the underlying search engines without LLM overhead.</p>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="tabs">
+      <div class="tab active" data-view="ui">Visual UI</div>
+      <div class="tab" data-view="raw">Raw JSON</div>
+    </div>
+
+    <div id="ui-view">
+      <div style="color: var(--text3); text-align: center; padding: 40px;">No results yet. Enter a query to begin.</div>
+    </div>
+    <div id="raw-view" class="raw-view"></div>
+  </div>
+
+</div>
+
+<script>
+  const runBtn = document.getElementById('run-search');
+  const uiView = document.getElementById('ui-view');
+  const rawView = document.getElementById('raw-view');
+  const tabs = document.querySelectorAll('.tab');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const view = tab.getAttribute('data-view');
+      if (view === 'ui') {
+        uiView.style.display = 'block';
+        rawView.style.display = 'none';
+      } else {
+        uiView.style.display = 'none';
+        rawView.style.display = 'block';
+      }
+    });
+  });
+
+  runBtn.addEventListener('click', async () => {
+    const q = document.getElementById('q').value;
+    const cat = document.querySelector('input[name="cat"]:checked').value;
+    const page = document.getElementById('page').value;
+
+    if (!q) return alert('Please enter a query');
+
+    runBtn.textContent = 'Searching...';
+    uiView.innerHTML = '<div style="text-align:center;padding:40px;">⏳ Fetching results...</div>';
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&category=${cat}&pageno=${page}`);
+      const data = await res.json();
+      
+      rawView.textContent = JSON.stringify(data, null, 2);
+      
+      if (!data.success) {
+        uiView.innerHTML = `<div style="color:var(--accent2);padding:20px;">Error: ${data.error}</div>`;
+      } else {
+        uiView.innerHTML = data.results.map(r => `
+          <div class="res-card">
+            <div class="res-info">
+              <a href="${r.url}" class="res-title" target="_blank">${r.title}</a>
+              <div class="res-url">${r.url}</div>
+              <div class="res-snippet">${r.snippet}</div>
+              <div class="res-meta">
+                <span class="res-badge">${r.engine}</span>
+                <span class="res-badge">${r.category}</span>
+                ${r.score ? `<span class="res-badge">Score: ${r.score}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      uiView.innerHTML = `<div style="color:var(--accent2);padding:20px;">Fetch error: ${err.message}</div>`;
+    }
+    runBtn.textContent = 'Run Search';
+  });
+</script>
+
+</body>
+</html>

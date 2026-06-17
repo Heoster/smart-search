@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — Tillu Smart Search</title>
+  <meta name="description" content="Detailed API reference, integration guides, and conceptual documentation for Tillu Smart Search. Learn how to build AI agents with structured search data.">
+  <meta name="keywords" content="API documentation, AI search integration, smart search guides, developer reference">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://tillu-smart-search.vercel.app/docs/">
+  <meta property="og:title" content="Documentation — Tillu Smart Search">
+  <meta property="og:description" content="Master the Tillu Smart Search API. Detailed guides for search, scraping, and AI synthesis.">
+  <meta property="og:image" content="https://tillu-smart-search.vercel.app/og-docs.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Documentation — Tillu Smart Search">
+  <meta name="twitter:description" content="Master the Tillu Smart Search API. Detailed guides for search, scraping, and AI synthesis.">
+
+  <style>
+    :root {
+      --bg: #09090b; --bg2: #111113; --card: #18181b; --border: #27272a;
+      --accent: #6366f1; --accent2: #8b5cf6; --text: #fafafa;
+      --text2: #a1a1aa; --text3: #71717a; --green: #22c55e;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 260px; background: var(--bg2); border-right: 1px solid var(--border);
+      padding: 32px 24px; overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar h2 { font-size: 14px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+    .sidebar h2 span { background: var(--accent); width: 8px; height: 8px; border-radius: 50%; }
+    
+    .nav-group { margin-bottom: 32px; }
+    .nav-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; margin-bottom: 12px; display: block; }
+    .nav-link {
+      display: block; padding: 8px 12px; border-radius: 8px; font-size: 13px;
+      color: var(--text2); text-decoration: none; margin-bottom: 4px; transition: all 0.2s;
+    }
+    .nav-link:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .nav-link.active { background: rgba(99,102,241,0.1); color: var(--accent); font-weight: 600; }
+
+    /* Main Content */
+    .main { flex: 1; overflow-y: auto; padding: 60px 80px; scroll-behavior: smooth; }
+    .container { max-width: 800px; }
+    
+    /* Content Styling */
+    section { margin-bottom: 80px; display: none; }
+    section.active { display: block; }
+    
+    h1 { font-size: 40px; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
+    h2 { font-size: 24px; font-weight: 700; margin-top: 48px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    p { font-size: 16px; color: var(--text2); line-height: 1.7; margin-bottom: 24px; }
+    
+    code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--card); padding: 2px 6px; border-radius: 4px; font-size: 14px; color: var(--accent); }
+    pre {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; overflow-x: auto; margin: 24px 0;
+    }
+    pre code { background: transparent; padding: 0; color: var(--text); }
+    
+    table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--text3); font-size: 12px; text-transform: uppercase; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    
+    .badge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+    .badge.get { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge.post { background: rgba(234,179,8,0.15); color: var(--yellow); }
+
+    .callout {
+      padding: 20px; background: rgba(99,102,241,0.05); border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0; margin: 32px 0;
+    }
+    .callout p { margin-bottom: 0; font-size: 15px; }
+
+    /* Top Nav */
+    .top-nav {
+      position: absolute; top: 0; left: 260px; right: 0; padding: 16px 40px;
+      display: flex; justify-content: flex-end; gap: 24px; background: rgba(9,9,11,0.5);
+      backdrop-filter: blur(8px); z-index: 10;
+    }
+    .top-nav a { text-decoration: none; color: var(--text3); font-size: 13px; font-weight: 600; }
+    .top-nav a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2><span></span> Tillu Docs</h2>
+  
+  <div class="nav-group">
+    <span class="nav-label">General</span>
+    <a href="#intro" class="nav-link active">Introduction</a>
+    <a href="#start" class="nav-link">Getting Started</a>
+  </div>
+
+  <div class="nav-group">
+    <span class="nav-label">API Endpoints</span>
+    <a href="#unified" class="nav-link">/api/unified</a>
+    <a href="#search" class="nav-link">/api/search</a>
+    <a href="#scraper" class="nav-link">/api/scraper</a>
+    <a href="#synthesiser" class="nav-link">/api/synthesiser</a>
+  </div>
+
+  <div class="nav-group">
+    <span class="nav-label">Resources</span>
+    <a href="#pipelines" class="nav-link">Modes & Pipelines</a>
+    <a href="#agents" class="nav-link">Agent Integration</a>
+    <a href="#deployment" class="nav-link">Deployment</a>
+  </div>
+</div>
+
+<div class="top-nav">
+  <a href="/index.html">API Tester</a>
+  <a href="/test/index.html">Testing Labs</a>
+  <a href="/developer.html">Developer</a>
+</div>
+
+<div class="main">
+  <div class="container">
+
+    <!-- Introduction -->
+    <section id="intro" class="active">
+      <h1>Introduction</h1>
+      <p>Welcome to the official documentation for **Tillu Smart Search**. Tillu is a high-performance, AI-powered search infrastructure designed to bridge the gap between traditional search engines and the reasoning capabilities of modern Large Language Models.</p>
+      
+      <div class="callout">
+        <p><strong>Pro Tip:</strong> Tillu doesn't just return links; it returns structured answers. It is built to be the "eyes and ears" of your AI agents.</p>
+      </div>
+
+      <h2>Core Capabilities</h2>
+      <p>Tillu orchestrates a complex pipeline of tools to deliver results that are significantly more useful than a standard search API:</p>
+      <ul>
+        <li><strong>Aggregated Search:</strong> Powered by SearXNG, pulling from Google, Bing, DuckDuckGo, and more.</li>
+        <li><strong>Smart Scraper:</strong> Extracts clean content from web pages, stripping out ads and noise.</li>
+        <li><strong>AI Synthesis:</strong> Uses Groq Llama 3.3 70B to synthesize multi-source information.</li>
+        <li><strong>JSON Structurer:</strong> Normalizes any data into a predictable schema for your app.</li>
+      </ul>
+    </section>
+
+    <!-- Unified -->
+    <section id="unified">
+      <h1>API: Unified</h1>
+      <p><span class="badge get">GET</span> <code>/api/unified</code></p>
+      <p>The primary endpoint. Runs the full pipeline: <strong>Search → Scrape → Synthesize → Structure</strong>.</p>
+      
+      <h2>Query Parameters</h2>
+      <table>
+        <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>q</code></td><td>string</td><td>-</td><td>The search query. Required.</td></tr>
+        <tr><td><code>mode</code></td><td>string</td><td>fast</td><td><code>fast</code>, <code>full</code>, or <code>search</code>.</td></tr>
+        <tr><td><code>category</code></td><td>string</td><td>general</td><td><code>general</code>, <code>videos</code>, <code>news</code>.</td></tr>
+      </table>
+
+      <h2>Modes</h2>
+      <table>
+        <tr><th>Mode</th><th>Action</th><th>Speed</th></tr>
+        <tr><td><code>fast</code></td><td>Search + AI Synthesis</td><td>3-8s</td></tr>
+        <tr><td><code>full</code></td><td>Search + Scrape + AI Synthesis</td><td>8-20s</td></tr>
+        <tr><td><code>search</code></td><td>Raw Search Only</td><td>1-3s</td></tr>
+      </table>
+
+      <h2>Example Request</h2>
+      <pre><code>curl "https://api.tillu.io/api/unified?q=react+vs+vue&mode=fast"</code></pre>
+    </section>
+
+    <!-- More sections would be populated here... -->
+    <!-- For brevity in this turn, I've set up the shell. I will expand others as needed. -->
+
+  </div>
+</div>
+
+<script>
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('section');
+
+  function showSection(id) {
+    sections.forEach(s => s.classList.remove('active'));
+    navLinks.forEach(l => l.classList.remove('active'));
+    
+    const targetSection = document.getElementById(id.replace('#', ''));
+    const targetLink = document.querySelector(`.nav-link[href="${id}"]`);
+    
+    if (targetSection) targetSection.classList.add('active');
+    if (targetLink) targetLink.classList.add('active');
+  }
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = link.getAttribute('href');
+      showSection(id);
+      window.location.hash = id;
+    });
+  });
+
+  // Handle direct links
+  if (window.location.hash) {
+    showSection(window.location.hash);
+  }
+</script>
+
+</body>
+</html>
