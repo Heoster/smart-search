@@ -147,13 +147,28 @@ input, textarea, select {
   color: var(--text);
   padding: 14px 16px;
   outline: none;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgba(156, 163, 175, 0.5);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+input:focus::placeholder, textarea:focus::placeholder {
+  opacity: 0.3;
+  transform: translateX(6px);
+}
+
+input:hover, textarea:hover, select:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--accent);
   background: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), 0 0 10px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), 0 0 15px rgba(99, 102, 241, 0.12);
 }
 
 /* Custom Scrollbars */
@@ -180,7 +195,64 @@ input:focus, textarea:focus, select:focus {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+  to { opacity: 1; max-height: 800px; padding-top: 24px; padding-bottom: 24px; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes ripple {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.35); }
+  100% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+}
+
 .fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.fade-in-d1 {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+.fade-in-d2 {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.fade-in-d3 {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+}
+
+.stat-pop {
+  animation: pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(99, 102, 241, 0.08) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease infinite;
+}
+
+.loading-pulse {
+  animation: pulse-glow 1.5s ease-in-out infinite;
 }
 

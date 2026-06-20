@@ -118,7 +118,7 @@
       margin-bottom: 10px;
       cursor: pointer;
       position: relative;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       white-space: pre-wrap;
       word-break: break-all;
     }
@@ -126,6 +126,16 @@
     .curl-code:hover {
       border-color: var(--accent);
       background: rgba(99, 102, 241, 0.05);
+      transform: translateX(4px);
+    }
+    
+    .curl-code:active {
+      transform: scale(0.99);
+    }
+    
+    .curl-code.copied {
+      border-color: var(--green) !important;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
     }
 
     /* Endpoint Styling */
@@ -173,7 +183,7 @@
     .ep-arrow {
       color: var(--text-muted);
       font-size: 11px;
-      transition: transform 0.2s;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
     .ep.open .ep-arrow {
@@ -189,6 +199,7 @@
     
     .ep.open .ep-body {
       display: block;
+      animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     /* Controls & Presets */
@@ -207,13 +218,20 @@
       color: var(--text-muted);
       font-size: 12px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
     .preset:hover {
       border-color: var(--accent);
       color: #fff;
       background: rgba(99, 102, 241, 0.1);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+    
+    .preset:active {
+      transform: translateY(0) scale(0.96);
+      transition-duration: 0.1s;
     }
     
     .url-bar {
@@ -232,24 +250,35 @@
     .send-btn {
       padding: 12px 28px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #fff;
       font-weight: 700;
       font-size: 14px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      position: relative;
+      overflow: hidden;
     }
     
     .send-btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(99, 102, 241, 0.45), 0 0 15px rgba(168, 85, 247, 0.2);
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+    }
+    
+    .send-btn:active {
+      transform: translateY(0) scale(0.97);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+      transition-duration: 0.1s;
     }
     
     .send-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
     /* Response block */
@@ -289,6 +318,11 @@
       white-space: pre-wrap;
       word-break: break-all;
       line-height: 1.6;
+      transition: border-color 0.3s ease;
+    }
+    
+    .res-json:hover {
+      border-color: rgba(99, 102, 241, 0.25);
     }
     
     .res-json .key { color: #818cf8; }
@@ -311,12 +345,25 @@
       color: var(--text-muted);
       font-size: 12px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
     .copy-btn:hover {
       color: #fff;
       border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.08);
+      transform: translateY(-1px);
+    }
+    
+    .copy-btn:active {
+      transform: scale(0.96);
+      transition-duration: 0.08s;
+    }
+    
+    .copy-btn.copied {
+      color: var(--green) !important;
+      border-color: var(--green) !important;
+      background: rgba(16, 185, 129, 0.1) !important;
     }
   </style>
 </head>
@@ -484,8 +531,8 @@
     const btn = input.parentElement.querySelector(\x27.send-btn\x27);
 
     btn.disabled = true;
-    btn.textContent = \x27Sending...\x27;
-    resDiv.innerHTML = \x27<div style=\x22color:var(--text-dark);font-size:12px;padding:8px 0;text-align:center;\x22>? Pipeline active. Fetching structured payload...</div>\x27;
+    btn.textContent = '\u2728 Sending...';
+    resDiv.innerHTML = '<div class="loading-shimmer loading-pulse" style="color:var(--text-dark);font-size:12px;padding:14px 0;text-align:center;border-radius:10px;margin-top:8px;">\u26a1 Pipeline active. Fetching structured payload...</div>';
 
     const t0 = Date.now();
     try {
@@ -507,19 +554,21 @@
       resDiv.innerHTML = `
         <div class="res-meta fade-in">
           <span class="res-status ${statusClass}">${res.status} ${res.statusText}</span>
-          <span style="color:var(--cyan)">? ${ms}ms</span>
-          <span style="color:var(--text-muted)">?? ${sizeStr}</span>
+          <span style="color:var(--cyan)">\u23f1 ${ms}ms</span>
+          <span style="color:var(--text-muted)">\ud83d\udce6 ${sizeStr}</span>
         </div>
-        <div class="res-json fade-in">${json ? syntaxHighlight(json) : escHtml(text)}</div>
-        <div class="copy-row fade-in">
-          <button class="copy-btn" onclick="copyRes(\x27${id}\x27)">?? Copy Response</button>
+        <div class="res-json fade-in-d1">${json ? syntaxHighlight(json) : escHtml(text)}</div>
+        <div class="copy-row fade-in-d2">
+          <button class="copy-btn" onclick="copyRes('${id}')">
+            \ud83d\udccb Copy Response
+          </button>
         </div>
       `;
     } catch (err) {
       total++;
       fail++;
       updateStats();
-      resDiv.innerHTML = `<div style="color:var(--red);font-size:13px;padding:8px 0;text-align:center;">? ${err.message}</div>`;
+      resDiv.innerHTML = `<div class="fade-in" style="color:var(--red);font-size:13px;padding:12px 0;text-align:center;">\u274c ${err.message}</div>`;
     }
 
     btn.disabled = false;
@@ -527,11 +576,17 @@
   }
 
   function updateStats() {
-    document.getElementById(\x27statTotal\x27).textContent = total;
-    document.getElementById(\x27statOk\x27).textContent = ok;
-    document.getElementById(\x27statFail\x27).textContent = fail;
+    const ids = ['statTotal', 'statOk', 'statFail', 'statAvg'];
+    const vals = [total, ok, fail, null];
     const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
-    document.getElementById(\x27statAvg\x27).textContent = avg + \x27ms\x27;
+    vals[3] = avg + 'ms';
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.textContent = vals[i];
+      el.classList.remove('stat-pop');
+      void el.offsetWidth; // force reflow to restart animation
+      el.classList.add('stat-pop');
+    });
   }
 
   function syntaxHighlight(obj) {
@@ -554,18 +609,22 @@
   }
 
   function copyRes(id) {
-    const el = document.querySelector(\x27#res-\x27 + id + \x27 .res-json\x27);
+    const el = document.querySelector('#res-' + id + ' .res-json');
     navigator.clipboard.writeText(el.textContent).then(() => {
-      const btn = el.nextElementSibling.querySelector(\x27.copy-btn\x27);
-      btn.textContent = \x27? Copied!\x27;
-      setTimeout(() => btn.textContent = \x27?? Copy Response\x27, 1500);
+      const btn = el.nextElementSibling.querySelector('.copy-btn');
+      btn.classList.add('copied');
+      btn.textContent = '\u2705 Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = '\ud83d\udccb Copy Response';
+      }, 1500);
     });
   }
 
   function copyEl(el) {
     navigator.clipboard.writeText(el.textContent).then(() => {
-      el.style.borderColor = \x27var(--green)\x27;
-      setTimeout(() => el.style.borderColor = \x27\x27, 1000);
+      el.classList.add('copied');
+      setTimeout(() => el.classList.remove('copied'), 1200);
     });
   }
 
