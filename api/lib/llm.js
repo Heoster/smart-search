@@ -1,11 +1,11 @@
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// Model fallback chain
+// Model fallback chain (updated June 2026 — old Llama/Mixtral models deprecated)
 const LLM_MODELS = [
-  'llama-3.1-8b-instant',
-  'llama-3.3-70b-versatile',
-  'gpt-oss-20b',
+  'openai/gpt-oss-120b',       // Primary — replaces llama-3.3-70b-versatile
+  'qwen/qwen3-32b',            // Fallback — fast and capable
+  'openai/gpt-oss-20b',        // Lightweight fallback — replaces llama-3.1-8b-instant
 ];
 
 const MAX_CONTEXT_CHARS = 6000;
@@ -53,8 +53,9 @@ export async function callLLM(prompt, maxTokens = 800) {
 
       if (!llmRes.ok) {
         const errText = await llmRes.text().catch(() => '');
-        if (llmRes.status === 429) {
-          console.warn(`[llm] ${model} rate limited, trying next model...`);
+        // Retry on rate limit (429) or model not found (404) — try next model
+        if (llmRes.status === 429 || llmRes.status === 404) {
+          console.warn(`[llm] ${model} returned ${llmRes.status}, trying next model...`);
           lastError = new Error(`Groq API error ${llmRes.status}: ${errText.substring(0, 100)}`);
           continue;
         }

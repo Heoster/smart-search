@@ -1,130 +1,140 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Lab — Tillu Labs</title>
+  <title>Agent Lab � Tillu Labs</title>
+  <link rel="stylesheet" href="/index.css">
   <meta name="description" content="AI Agent simulation lab. Test structured JSON perception and tool-use reasoning.">
   <meta name="robots" content="noindex, follow">
   <style>
-    :root {
-      --bg: #09090b; --bg2: #111113; --card: #18181b; --border: #27272a;
-      --accent: #6366f1; --accent2: #8b5cf6; --text: #fafafa;
-      --text2: #a1a1aa; --text3: #71717a; --green: #22c55e;
-    }
-    body {
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      background: var(--bg); color: var(--text); margin: 0; padding: 0;
-    }
     .top-nav {
-      background: var(--bg2); border-bottom: 1px solid var(--border);
-      padding: 12px 24px; display: flex; align-items: center; gap: 20px; font-family: sans-serif;
+      background: rgba(10, 8, 20, 0.4);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .top-nav a { text-decoration: none; color: var(--text3); font-size: 13px; font-weight: 600; }
-    .top-nav .brand { color: var(--text); font-weight: 800; margin-right: 20px; }
+    .top-nav a { text-decoration: none; color: var(--text-muted); font-size: 13px; font-weight: 600; }
+    .top-nav .brand { color: #fff; font-weight: 800; }
     
-    .container { max-width: 1200px; margin: 0 auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
     
-    .header-area { display: flex; justify-content: space-between; align-items: center; font-family: sans-serif; }
-    .header-area h1 { font-size: 24px; font-weight: 800; margin: 0; }
+    .header-area { display: flex; justify-content: space-between; align-items: center; }
+    .header-area h1 { font-size: 24px; font-weight: 800; margin: 0; color:#fff; }
     
     .search-box {
-      display: flex; gap: 12px; background: var(--card); border: 1px solid var(--border);
-      padding: 8px; border-radius: 12px;
+      display: flex; gap: 12px; padding: 8px; border-radius: 12px;
     }
     .input {
       flex: 1; background: transparent; border: none; padding: 12px;
-      color: var(--text); font-family: inherit; font-size: 14px; outline: none;
+      color: var(--text); font-family: "Fira Code", monospace; font-size: 14px; outline: none;
     }
     .btn {
-      background: var(--accent); color: white; border: none; padding: 8px 24px;
-      border-radius: 8px; font-weight: 700; cursor: pointer; font-family: sans-serif;
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; padding: 8px 24px;
+      border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;
     }
+    .btn:hover { opacity: 0.9; }
     
-    .view-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 600px; }
+    .view-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 500px; }
     .view-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      display: flex; flex-direction: column; overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
     .view-head {
-      background: var(--bg2); padding: 10px 16px; border-bottom: 1px solid var(--border);
-      font-size: 11px; font-weight: 800; color: var(--text3); text-transform: uppercase;
+      background: rgba(255,255,255,0.03); padding: 12px 18px; border-bottom: 1px solid var(--border);
+      font-size: 11px; font-weight: 800; color: var(--text-dark); text-transform: uppercase;
       display: flex; justify-content: space-between;
+      letter-spacing: 0.5px;
     }
-    .view-body { flex: 1; padding: 16px; overflow: auto; font-size: 12px; line-height: 1.6; }
+    .view-body { flex: 1; padding: 16px; overflow: auto; font-size: 12px; line-height: 1.6; font-family: "Fira Code", monospace; }
     
     .json-key { color: #818cf8; }
     .json-str { color: #34d399; }
     .json-num { color: #fbbf24; }
     
-    .agent-sim { font-family: sans-serif; color: var(--text2); font-size: 14px; line-height: 1.6; }
-    .agent-msg { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .agent-sim { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+    .agent-msg { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
     .agent-msg.system { border-left: 4px solid var(--accent); }
-    .agent-msg.thought { border-left: 4px solid var(--accent2); color: var(--text3); font-style: italic; }
+    .agent-msg.thought { border-left: 4px solid var(--accent2); color: var(--text-dark); font-style: italic; }
   </style>
 </head>
 <body>
 
 <div class="top-nav">
-  <a href="/test/index.html" class="brand">🧪 Tillu Labs</a>
-  <a href="/test/search-lab.html">Search</a>
-  <a href="/test/research-lab.html">Research</a>
-  <a href="/developer.html">Developer</a>
+  <a href="/test/index.html" class="brand">?? Tillu Labs</a>
+  <div>
+    <a href="/index.html" style="margin-right:20px;">Tester</a>
+    <a href="/test/search-lab.html" style="margin-right:20px;">Search</a>
+    <a href="/test/research-lab.html" style="margin-right:20px;">Research</a>
+    <a href="/developer.html">Developer</a>
+  </div>
 </div>
 
 <div class="container">
   
   <div class="header-area">
-    <h1>🤖 Agent Simulation Lab</h1>
-    <div style="font-size:12px; color:var(--text3); font-family:sans-serif;">Model: llama-3.3-70b-versatile</div>
+    <h1>?? Agent Simulation Lab</h1>
+    <div style="font-size:12px; color:var(--text-muted);">Running Chain Model: <code style="color:var(--accent)">openai/gpt-oss-120b</code></div>
   </div>
 
-  <div class="search-box">
-    <input type="text" id="q" class="input" placeholder="Ask a question as an agent would...">
+  <div class="search-box glass">
+    <input type="text" id="q" class="input" placeholder="Ask a question to trigger agent loop reasoning simulator...">
     <button class="btn" id="run">Run Simulation</button>
   </div>
 
   <div class="view-container">
     
-    <div class="view-card">
-      <div class="view-head"><span>Agent Perception (Structured Output)</span></div>
+    <div class="view-card glass">
+      <div class="view-head"><span>Agent Perception (Structured JSON Output)</span></div>
       <div class="view-body" id="structured-out">
-        <div style="color:var(--text3)">Waiting for simulation...</div>
+        <div style="color:var(--text-dark)">Waiting for query evaluation execution...</div>
       </div>
     </div>
 
-    <div class="view-card">
+    <div class="view-card glass">
       <div class="view-head"><span>Raw Pipeline Payload</span></div>
       <div class="view-body" id="raw-out">
-        <div style="color:var(--text3)">Waiting for simulation...</div>
+        <div style="color:var(--text-dark)">Waiting for query evaluation execution...</div>
       </div>
     </div>
 
   </div>
 
-  <div class="view-card" style="height:auto;">
-    <div class="view-head"><span>Agent Reasoning Loop Simulator</span></div>
+  <div class="view-card glass" style="height:auto;">
+    <div class="view-head"><span>Agent Reasoning Loop Simulator logs</span></div>
     <div class="view-body agent-sim" id="reasoning-out">
-      <div class="agent-msg system">Idle. Waiting for query...</div>
+      <div class="agent-msg system fade-in">Idle. Type query content and click Run to simulate.</div>
     </div>
   </div>
 
 </div>
 
 <script>
-  const runBtn = document.getElementById('run');
-  const structuredOut = document.getElementById('structured-out');
-  const rawOut = document.getElementById('raw-out');
-  const reasoningOut = document.getElementById('reasoning-out');
+  const runBtn = document.getElementById(\x27run\x27);
+  const structuredOut = document.getElementById(\x27structured-out\x27);
+  const rawOut = document.getElementById(\x27raw-out\x27);
+  const reasoningOut = document.getElementById(\x27reasoning-out\x27);
 
-  runBtn.addEventListener('click', async () => {
-    const q = document.getElementById('q').value;
+  runBtn.addEventListener(\x27click\x27, async () => {
+    const q = document.getElementById(\x27q\x27).value;
     if (!q) return;
 
-    runBtn.textContent = 'Processing...';
+    runBtn.textContent = \x27Simulating...\x27;
     reasoningOut.innerHTML = `
-      <div class="agent-msg thought">Analyzing query: "${q}"...</div>
-      <div class="agent-msg system">Executing Tool: tillu_search(query="${q}", mode="fast")</div>
+      <div class="agent-msg thought fade-in">Analyzing query intent details: "${q}"...</div>
+      <div class="agent-msg system fade-in">Executing Tool: tillu_search(query="${q}", mode="fast")</div>
     `;
 
     try {
@@ -134,23 +144,24 @@
       rawOut.textContent = JSON.stringify(data, null, 2);
       
       if (!data.success) {
-        reasoningOut.innerHTML += `<div class="agent-msg" style="color:#f87171">Error: ${data.error}</div>`;
+        reasoningOut.innerHTML += `<div class="agent-msg" style="color:var(--red)">Error: ${data.error}</div>`;
       } else {
         const s = data.structured;
         structuredOut.textContent = JSON.stringify(s, null, 2);
         
         reasoningOut.innerHTML += `
-          <div class="agent-msg thought">Received structured response. Extracting facts...</div>
-          <div class="agent-msg system"><b>Final Answer:</b> ${s.answer}</div>
-          <div class="agent-msg thought">Found ${s.key_points.length} key points and ${s.sources.length} sources.</div>
+          <div class="agent-msg thought fade-in">Parsing structured JSON blocks from response. Resolving attributes...</div>
+          <div class="agent-msg system fade-in"><b>Simulated Answer perceived:</b> ${s.answer}</div>
+          <div class="agent-msg thought fade-in">Collected ${s.key_points ? s.key_points.length : 0} points, verified against ${s.sources ? s.sources.length : 0} sources.</div>
         `;
       }
     } catch (err) {
-      reasoningOut.innerHTML += `<div class="agent-msg" style="color:#f87171">Fetch error: ${err.message}</div>`;
+      reasoningOut.innerHTML += `<div class="agent-msg" style="color:var(--red)">Fetch error: ${err.message}</div>`;
     }
-    runBtn.textContent = 'Run Simulation';
+    runBtn.textContent = \x27Run Simulation\x27;
   });
 </script>
 
 </body>
 </html>
+

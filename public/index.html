@@ -1,9 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tillu Smart Search — AI-Powered Search Ecosystem</title>
+  <title>Tillu Smart Search � AI-Powered Search Ecosystem</title>
+  <link rel="stylesheet" href="/index.css">
   <meta name="description" content="A high-performance AI search infrastructure combining SearXNG, Groq LLM synthesis, and smart web scraping for structured, actionable data.">
   <meta name="keywords" content="AI search, smart search, SearXNG, Groq, LLM synthesis, web scraping, API, developer tools">
   <meta name="author" content="Heoster / Harsh">
@@ -11,184 +13,357 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://tillu-smart-search.vercel.app/">
-  <meta property="og:title" content="Tillu Smart Search — AI-Powered Search Ecosystem">
+  <meta property="og:title" content="Tillu Smart Search � AI-Powered Search Ecosystem">
   <meta property="og:description" content="Structured, AI-synthesized search results for developers and agents. Search, scrape, and synthesize with one API.">
   <meta property="og:image" content="https://tillu-smart-search.vercel.app/og-image.png">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://tillu-smart-search.vercel.app/">
-  <meta name="twitter:title" content="Tillu Smart Search — AI-Powered Search Ecosystem">
+  <meta name="twitter:title" content="Tillu Smart Search � AI-Powered Search Ecosystem">
   <meta name="twitter:description" content="Structured, AI-synthesized search results for developers and agents. Search, scrape, and synthesize with one API.">
   <meta name="twitter:image" content="https://tillu-smart-search.vercel.app/og-image.png">
 
   <style>
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #09090b; --bg2: #111113; --card: #18181b; --border: #27272a;
-      --accent: #6366f1; --accent2: #8b5cf6; --text: #fafafa;
-      --text2: #a1a1aa; --text3: #71717a; --green: #22c55e;
-      --red: #ef4444; --yellow: #eab308; --cyan: #06b6d4;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg); color: var(--text); min-height: 100vh;
-    }
-    .nav-bar {
-      position: sticky; top: 0; background: rgba(9,9,11,0.8); backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--border); z-index: 100; padding: 12px 24px;
-      display: flex; justify-content: center; gap: 32px;
-    }
-    .nav-bar a { text-decoration: none; color: var(--text3); font-size: 13px; font-weight: 600; transition: color 0.2s; }
-    .nav-bar a:hover { color: var(--text); }
-    .nav-bar a.active { color: var(--accent); }
-
     .header {
-      padding: 60px 24px 40px; text-align: center;
+      padding: 80px 24px 60px;
+      text-align: center;
+      position: relative;
+      background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
       border-bottom: 1px solid var(--border);
-      background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%);
     }
-    .header h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+    
+    .header h1 {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+    
     .header h1 span {
       background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .header p { color: var(--text3); font-size: 15px; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    
+    .header p {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
 
-    /* Endpoint cards */
-    .ep { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
-    .ep-head {
-      display: flex; align-items: center; gap: 12px; padding: 14px 18px;
-      cursor: pointer; transition: background 0.15s;
-    }
-    .ep-head:hover { background: var(--bg2); }
-    .ep-method {
-      font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px;
-      text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
-    }
-    .ep-method.get { background: rgba(34,197,94,0.15); color: var(--green); }
-    .ep-method.post { background: rgba(234,179,8,0.15); color: var(--yellow); }
-    .ep-path { font-family: 'SF Mono','Fira Code',monospace; font-size: 14px; font-weight: 600; color: var(--text); }
-    .ep-desc { font-size: 12px; color: var(--text3); margin-left: auto; flex-shrink: 0; }
-    .ep-arrow { color: var(--text3); font-size: 12px; transition: transform 0.2s; }
-    .ep.open .ep-arrow { transform: rotate(90deg); }
-    .ep-body { display: none; padding: 0 18px 18px; }
-    .ep.open .ep-body { display: block; }
-
-    /* URL bar */
-    .url-bar {
-      display: flex; gap: 8px; margin-bottom: 12px; align-items: stretch;
-    }
-    .url-input {
-      flex: 1; padding: 10px 14px; background: var(--bg);
-      border: 1px solid var(--border); border-radius: 8px;
-      color: var(--cyan); font-family: 'SF Mono','Fira Code',monospace;
-      font-size: 12px; outline: none;
-    }
-    .url-input:focus { border-color: var(--accent); }
-    .send-btn {
-      padding: 10px 20px; border: none; border-radius: 8px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: white; font-weight: 700; font-size: 13px; cursor: pointer;
-      transition: opacity 0.2s; white-space: nowrap;
-    }
-    .send-btn:hover { opacity: 0.85; }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* Preset buttons */
-    .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-    .preset {
-      padding: 5px 12px; background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--text2); font-size: 12px; cursor: pointer;
-      transition: all 0.15s; font-family: 'SF Mono','Fira Code',monospace;
-    }
-    .preset:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* Response */
-    .res-meta {
-      display: flex; gap: 12px; margin-bottom: 10px; font-size: 12px;
-    }
-    .res-status { font-weight: 700; }
-    .res-status.ok { color: var(--green); }
-    .res-status.err { color: var(--red); }
-    .res-time { color: var(--text3); }
-    .res-size { color: var(--text3); }
-    .res-json {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-      padding: 14px; font-family: 'SF Mono','Fira Code',monospace; font-size: 11px;
-      color: var(--text2); max-height: 500px; overflow: auto; white-space: pre-wrap;
-      word-break: break-all; line-height: 1.5;
-    }
-    .res-json .key { color: var(--cyan); }
-    .res-json .str { color: var(--green); }
-    .res-json .num { color: var(--yellow); }
-    .res-json .bool { color: var(--accent2); }
-    .res-json .null { color: var(--text3); }
-
-    /* Copy */
-    .copy-row { display: flex; justify-content: flex-end; margin-top: 8px; }
-    .copy-btn {
-      padding: 4px 12px; background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--text3); font-size: 11px; cursor: pointer;
-    }
-    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
-
-    /* Stats */
+    /* Stats Grid */
     .stats {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px; margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
     }
+    
     .stat {
-      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 14px 16px; text-align: center;
+      padding: 24px;
+      text-align: center;
+      border: 1px solid var(--border);
+      background: rgba(13, 11, 23, 0.3);
+      border-radius: 12px;
     }
-    .stat-val { font-size: 24px; font-weight: 800; color: var(--accent); }
-    .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    
+    .stat-val {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
 
-    /* Curl */
+    /* Curl commands */
     .curl-box {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      padding: 18px; margin-bottom: 24px;
+      margin-bottom: 40px;
+      padding: 24px;
     }
-    .curl-box h3 { font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 10px; }
+    
+    .curl-box h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
     .curl-code {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 14px; font-family: 'SF Mono','Fira Code',monospace; font-size: 11px;
-      color: var(--green); margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s;
-      white-space: pre-wrap; word-break: break-all;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: "Fira Code", monospace;
+      font-size: 12px;
+      color: var(--green);
+      margin-bottom: 10px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
-    .curl-code:hover { border-color: var(--accent); }
+    
+    .curl-code:hover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    /* Endpoint Styling */
+    .ep {
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    
+    .ep-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      cursor: pointer;
+    }
+    
+    .ep-method {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .ep-method.get {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .ep-path {
+      font-family: "Fira Code", monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    .ep-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+    
+    .ep-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      transition: transform 0.2s;
+    }
+    
+    .ep.open .ep-arrow {
+      transform: rotate(90deg);
+    }
+    
+    .ep-body {
+      display: none;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.15);
+    }
+    
+    .ep.open .ep-body {
+      display: block;
+    }
+
+    /* Controls & Presets */
+    .presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    
+    .preset {
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .preset:hover {
+      border-color: var(--accent);
+      color: #fff;
+      background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .url-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .url-input {
+      flex: 1;
+      font-family: "Fira Code", monospace;
+      color: var(--cyan);
+      font-size: 13px;
+    }
+    
+    .send-btn {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+    
+    .send-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Response block */
+    .res-meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      align-items: center;
+    }
+    
+    .res-status {
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    
+    .res-status.ok {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green);
+    }
+    
+    .res-status.err {
+      background: rgba(244, 63, 94, 0.1);
+      color: var(--red);
+    }
+    
+    .res-json {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      font-size: 12px;
+      color: #e5e7eb;
+      max-height: 500px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+    
+    .res-json .key { color: #818cf8; }
+    .res-json .str { color: #34d399; }
+    .res-json .num { color: #fbbf24; }
+    .res-json .bool { color: #a855f7; }
+    .res-json .null { color: var(--text-dark); }
+    
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    
+    .copy-btn {
+      padding: 6px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .copy-btn:hover {
+      color: #fff;
+      border-color: var(--accent);
+    }
   </style>
 </head>
 <body>
 
 <div class="nav-bar">
-  <a href="/index.html" class="active">API Tester</a>
-  <a href="/docs/index.html">Documentation</a>
-  <a href="/test/index.html">Testing Labs</a>
-  <a href="/developer.html">Developer</a>
+  <a href="/index.html" class="nav-logo">
+    <span>Tillu Search Ecosystem</span>
+  </a>
+  <div class="nav-links">
+    <a href="/index.html" class="active">API Tester</a>
+    <a href="/docs/index.html">Documentation</a>
+    <a href="/test/index.html">Testing Labs</a>
+    <a href="/developer.html">Developer</a>
+  </div>
 </div>
 
 <div class="header">
-  <h1>🔍 <span>Tillu Smart Search</span> — Ecosystem Hub</h1>
-  <p>Test the unified API pipeline, explore documentation, or visit specialized testing labs.</p>
+  <h1>?? <span>Tillu Smart Search</span></h1>
+  <p>Test the unified API pipelines, run queries, verify results extraction, or visit specialized testing labs.</p>
 </div>
 
 <div class="container">
 
-  <!-- Stats -->
+  <!-- Stats Grid -->
   <div class="stats">
-    <div class="stat"><div class="stat-val" id="statTotal">0</div><div class="stat-label">Tests Run</div></div>
-    <div class="stat"><div class="stat-val" id="statOk">0</div><div class="stat-label">Passed</div></div>
-    <div class="stat"><div class="stat-val" id="statFail">0</div><div class="stat-label">Failed</div></div>
-    <div class="stat"><div class="stat-val" id="statAvg">0ms</div><div class="stat-label">Avg Latency</div></div>
+    <div class="stat glass">
+      <div class="stat-val" id="statTotal">0</div>
+      <div class="stat-label">Tests Run</div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-val" id="statOk" style="color:var(--green)">0</div>
+      <div class="stat-label">Passed</div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-val" id="statFail" style="color:var(--red)">0</div>
+      <div class="stat-label">Failed</div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-val" id="statAvg" style="color:var(--cyan)">0ms</div>
+      <div class="stat-label">Avg Latency</div>
+    </div>
   </div>
 
-  <!-- Quick Curl -->
-  <div class="curl-box">
-    <h3>📋 Click to copy curl commands</h3>
+  <!-- Curl instructions -->
+  <div class="curl-box glass">
+    <h3>?? Click to copy curl commands</h3>
     <div class="curl-code" onclick="copyEl(this)">curl "{{origin}}/api/unified?q=python+tutorial&mode=fast"</div>
     <div class="curl-code" onclick="copyEl(this)">curl "{{origin}}/api/unified?q=react+crash+course&category=videos&mode=fast"</div>
     <div class="curl-code" onclick="copyEl(this)">curl "{{origin}}/api/unified?q=latest+AI+news&category=news&mode=fast"</div>
@@ -199,120 +374,91 @@
     <div class="curl-code" onclick="copyEl(this)">curl "{{origin}}/api/llm-structurer?q=python&data={\"results\":[{\"title\":\"Python\",\"snippet\":\"Python is a language\"}]}"</div>
   </div>
 
-  <!-- 1. Unified -->
-  <div class="ep open" id="ep-unified">
-    <div class="ep-head" onclick="toggleEp('ep-unified')">
+  <!-- Unified Pipeline -->
+  <div class="ep glass open" id="ep-unified">
+    <div class="ep-head" onclick="toggleEp(\x27ep-unified\x27)">
       <span class="ep-method get">GET</span>
       <span class="ep-path">/api/unified</span>
-      <span class="ep-desc">Full pipeline: search → scrape → synthesize → structure</span>
-      <span class="ep-arrow">▶</span>
+      <span class="ep-desc">Full orchestrated pipeline: Search ? Scrape ? Synthesise ? JSON structure</span>
+      <span class="ep-arrow">?</span>
     </div>
     <div class="ep-body">
       <div class="presets">
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=python+tutorial&mode=fast')">python tutorial (fast)</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=python+tutorial&mode=full')">python tutorial (full)</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=python+tutorial&mode=search')">python tutorial (search)</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=react+crash+course&category=videos')">react videos</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=AI+news+today&category=news')">AI news</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=cute+cats&category=images')">cats images</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=bitcoin+price&mode=full')">bitcoin (full)</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=who+is+elon+musk')">elon musk</button>
-        <button class="preset" onclick="fill('ep-unified','/api/unified?q=how+to+learn+rust+programming')">learn rust</button>
+        <button class="preset" onclick="fill(\x27ep-unified\x27,\x27/api/unified?q=python+tutorial&mode=fast\x27)">python tutorial (fast)</button>
+        <button class="preset" onclick="fill(\x27ep-unified\x27,\x27/api/unified?q=python+tutorial&mode=full\x27)">python tutorial (full)</button>
+        <button class="preset" onclick="fill(\x27ep-unified\x27,\x27/api/unified?q=python+tutorial&mode=search\x27)">python tutorial (search)</button>
+        <button class="preset" onclick="fill(\x27ep-unified\x27,\x27/api/unified?q=react+crash+course&category=videos\x27)">react videos</button>
+        <button class="preset" onclick="fill(\x27ep-unified\x27,\x27/api/unified?q=AI+news+today&category=news\x27)">AI news</button>
+        <button class="preset" onclick="fill(\x27ep-unified\x27,\x27/api/unified?q=bitcoin+price&mode=full\x27)">bitcoin (full)</button>
       </div>
       <div class="url-bar">
         <input class="url-input" id="url-ep-unified" value="/api/unified?q=python+tutorial&mode=fast">
-        <button class="send-btn" onclick="send('ep-unified')">Send →</button>
+        <button class="send-btn" onclick="send(\x27ep-unified\x27)">Send Request</button>
       </div>
       <div id="res-ep-unified"></div>
     </div>
   </div>
 
-  <!-- 2. Search -->
-  <div class="ep" id="ep-search">
-    <div class="ep-head" onclick="toggleEp('ep-search')">
+  <!-- Search Proxy -->
+  <div class="ep glass" id="ep-search">
+    <div class="ep-head" onclick="toggleEp(\x27ep-search\x27)">
       <span class="ep-method get">GET</span>
       <span class="ep-path">/api/search</span>
-      <span class="ep-desc">Raw SearXNG search</span>
-      <span class="ep-arrow">▶</span>
+      <span class="ep-desc">Raw multi-provider search engine aggregator</span>
+      <span class="ep-arrow">?</span>
     </div>
     <div class="ep-body">
       <div class="presets">
-        <button class="preset" onclick="fill('ep-search','/api/search?q=javascript+frameworks')">javascript frameworks</button>
-        <button class="preset" onclick="fill('ep-search','/api/search?q=climate+change&category=news')">climate news</button>
-        <button class="preset" onclick="fill('ep-search','/api/search?q=machine+learning&category=general')">machine learning</button>
-        <button class="preset" onclick="fill('ep-search','/api/search?q=chill+beats&category=videos')">chill videos</button>
+        <button class="preset" onclick="fill(\x27ep-search\x27,\x27/api/search?q=javascript+frameworks\x27)">javascript frameworks</button>
+        <button class="preset" onclick="fill(\x27ep-search\x27,\x27/api/search?q=climate+change&category=news\x27)">climate news</button>
+        <button class="preset" onclick="fill(\x27ep-search\x27,\x27/api/search?q=machine+learning\x27)">machine learning</button>
       </div>
       <div class="url-bar">
         <input class="url-input" id="url-ep-search" value="/api/search?q=javascript+frameworks">
-        <button class="send-btn" onclick="send('ep-search')">Send →</button>
+        <button class="send-btn" onclick="send(\x27ep-search\x27)">Send Request</button>
       </div>
       <div id="res-ep-search"></div>
     </div>
   </div>
 
-  <!-- 3. Scraper -->
-  <div class="ep" id="ep-scraper">
-    <div class="ep-head" onclick="toggleEp('ep-scraper')">
+  <!-- Web Scraper -->
+  <div class="ep glass" id="ep-scraper">
+    <div class="ep-head" onclick="toggleEp(\x27ep-scraper\x27)">
       <span class="ep-method get">GET</span>
       <span class="ep-path">/api/scraper</span>
-      <span class="ep-desc">Smart web scraper</span>
-      <span class="ep-arrow">▶</span>
+      <span class="ep-desc">Smart HTML extraction & text cleaning</span>
+      <span class="ep-arrow">?</span>
     </div>
     <div class="ep-body">
       <div class="presets">
-        <button class="preset" onclick="fill('ep-scraper','/api/scraper?url=https://en.wikipedia.org/wiki/Artificial_intelligence')">Wikipedia AI</button>
-        <button class="preset" onclick="fill('ep-scraper','/api/scraper?url=https://github.com/searxng/searxng')">GitHub SearXNG</button>
-        <button class="preset" onclick="fill('ep-scraper','/api/scraper?url=https://news.ycombinator.com')">Hacker News</button>
-        <button class="preset" onclick="fill('ep-scraper','/api/scraper?url=https://docs.python.org/3/tutorial/index.html')">Python Docs</button>
+        <button class="preset" onclick="fill(\x27ep-scraper\x27,\x27/api/scraper?url=https://en.wikipedia.org/wiki/Artificial_intelligence\x27)">Wikipedia AI</button>
+        <button class="preset" onclick="fill(\x27ep-scraper\x27,\x27/api/scraper?url=https://github.com/searxng/searxng\x27)">GitHub SearXNG</button>
       </div>
       <div class="url-bar">
         <input class="url-input" id="url-ep-scraper" value="/api/scraper?url=https://en.wikipedia.org/wiki/Artificial_intelligence">
-        <button class="send-btn" onclick="send('ep-scraper')">Send →</button>
+        <button class="send-btn" onclick="send(\x27ep-scraper\x27)">Send Request</button>
       </div>
       <div id="res-ep-scraper"></div>
     </div>
   </div>
 
-  <!-- 4. Synthesiser -->
-  <div class="ep" id="ep-synthesiser">
-    <div class="ep-head" onclick="toggleEp('ep-synthesiser')">
+  <!-- LLM Synthesiser -->
+  <div class="ep glass" id="ep-synthesiser">
+    <div class="ep-head" onclick="toggleEp(\x27ep-synthesiser\x27)">
       <span class="ep-method get">GET</span>
       <span class="ep-path">/api/synthesiser</span>
-      <span class="ep-desc">Groq LLM synthesis</span>
-      <span class="ep-arrow">▶</span>
+      <span class="ep-desc">Groq Llama model context summariser</span>
+      <span class="ep-arrow">?</span>
     </div>
     <div class="ep-body">
       <div class="presets">
-        <button class="preset" onclick="fill('ep-synthesiser','/api/synthesiser?q=what+is+python&context=[{\"title\":\"Python\",\"snippet\":\"Python is a high-level programming language\"}]')">what is python</button>
-        <button class="preset" onclick="fill('ep-synthesiser','/api/synthesiser?q=benefits+of+rust&context=[{\"title\":\"Rust\",\"snippet\":\"Rust is memory safe without GC\"},{\"title\":\"Why Rust\",\"snippet\":\"Rust has zero cost abstractions\"}]')">benefits of rust</button>
-        <button class="preset" onclick="fill('ep-synthesiser','/api/synthesiser?q=explain+quantum+computing')">no context</button>
+        <button class="preset" onclick="fill(\x27ep-synthesiser\x27,\x27/api/synthesiser?q=what+is+python&context=[{\x22title\x22:\x22Python\x22,\x22snippet\x22:\x22Python is a high-level programming language\x22}]\x27)">what is python</button>
       </div>
       <div class="url-bar">
-        <input class="url-input" id="url-ep-synthesiser" value="/api/synthesiser?q=what+is+python&context=[{\"title\":\"Python\",\"snippet\":\"Python is a high-level programming language\"}]">
-        <button class="send-btn" onclick="send('ep-synthesiser')">Send →</button>
+        <input class="url-input" id="url-ep-synthesiser" value="/api/synthesiser?q=what+is+python&context=[{\x22title\x22:\x22Python\x22,\x22snippet\x22:\x22Python is a high-level programming language\x22}]">
+        <button class="send-btn" onclick="send(\x27ep-synthesiser\x27)">Send Request</button>
       </div>
       <div id="res-ep-synthesiser"></div>
-    </div>
-  </div>
-
-  <!-- 5. LLM Structurer -->
-  <div class="ep" id="ep-llm-structurer">
-    <div class="ep-head" onclick="toggleEp('ep-llm-structurer')">
-      <span class="ep-method get">GET</span>
-      <span class="ep-path">/api/llm-structurer</span>
-      <span class="ep-desc">Groq LLM data structurer</span>
-      <span class="ep-arrow">▶</span>
-    </div>
-    <div class="ep-body">
-      <div class="presets">
-        <button class="preset" onclick="fill('ep-llm-structurer','/api/llm-structurer?q=python&data={\"results\":[{\"title\":\"Python\",\"snippet\":\"A programming language\",\"url\":\"https://python.org\"}]}')">python</button>
-        <button class="preset" onclick="fill('ep-llm-structurer','/api/llm-structurer?q=climate+change&data={\"results\":[{\"title\":\"Climate\",\"snippet\":\"Global warming is increasing\",\"url\":\"https://nasa.gov\"}]}')">climate</button>
-      </div>
-      <div class="url-bar">
-        <input class="url-input" id="url-ep-llm-structurer" value="/api/llm-structurer?q=python&data={\"results\":[{\"title\":\"Python\",\"snippet\":\"A programming language\",\"url\":\"https://python.org\"}]}">
-        <button class="send-btn" onclick="send('ep-llm-structurer')">Send →</button>
-      </div>
-      <div id="res-ep-llm-structurer"></div>
     </div>
   </div>
 
@@ -323,23 +469,23 @@
   let total = 0, ok = 0, fail = 0, times = [];
 
   function toggleEp(id) {
-    document.getElementById(id).classList.toggle('open');
+    document.getElementById(id).classList.toggle(\x27open\x27);
   }
 
   function fill(id, url) {
-    document.getElementById('url-' + id).value = url;
+    document.getElementById(\x27url-\x27 + id).value = url;
     send(id);
   }
 
   async function send(id) {
-    const input = document.getElementById('url-' + id);
-    const resDiv = document.getElementById('res-' + id);
+    const input = document.getElementById(\x27url-\x27 + id);
+    const resDiv = document.getElementById(\x27res-\x27 + id);
     const url = input.value;
-    const btn = input.parentElement.querySelector('.send-btn');
+    const btn = input.parentElement.querySelector(\x27.send-btn\x27);
 
     btn.disabled = true;
-    btn.textContent = '...';
-    resDiv.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px 0;">⏳ Fetching...</div>';
+    btn.textContent = \x27Sending...\x27;
+    resDiv.innerHTML = \x27<div style=\x22color:var(--text-dark);font-size:12px;padding:8px 0;text-align:center;\x22>? Pipeline active. Fetching structured payload...</div>\x27;
 
     const t0 = Date.now();
     try {
@@ -354,79 +500,79 @@
       times.push(ms);
       updateStats();
 
-      const statusClass = res.ok ? 'ok' : 'err';
+      const statusClass = res.ok ? \x27ok\x27 : \x27err\x27;
       const size = new Blob([text]).size;
-      const sizeStr = size > 1024 ? (size / 1024).toFixed(1) + ' KB' : size + ' B';
+      const sizeStr = size > 1024 ? (size / 1024).toFixed(1) + \x27 KB\x27 : size + \x27 B\x27;
 
       resDiv.innerHTML = `
-        <div class="res-meta">
+        <div class="res-meta fade-in">
           <span class="res-status ${statusClass}">${res.status} ${res.statusText}</span>
-          <span class="res-time">⏱ ${ms}ms</span>
-          <span class="res-size">📦 ${sizeStr}</span>
+          <span style="color:var(--cyan)">? ${ms}ms</span>
+          <span style="color:var(--text-muted)">?? ${sizeStr}</span>
         </div>
-        <div class="res-json">${json ? syntaxHighlight(json) : escHtml(text)}</div>
-        <div class="copy-row">
-          <button class="copy-btn" onclick="copyRes('${id}')">📋 Copy Response</button>
+        <div class="res-json fade-in">${json ? syntaxHighlight(json) : escHtml(text)}</div>
+        <div class="copy-row fade-in">
+          <button class="copy-btn" onclick="copyRes(\x27${id}\x27)">?? Copy Response</button>
         </div>
       `;
     } catch (err) {
       total++;
       fail++;
       updateStats();
-      resDiv.innerHTML = `<div style="color:var(--red);font-size:13px;padding:8px 0;">❌ ${err.message}</div>`;
+      resDiv.innerHTML = `<div style="color:var(--red);font-size:13px;padding:8px 0;text-align:center;">? ${err.message}</div>`;
     }
 
     btn.disabled = false;
-    btn.textContent = 'Send →';
+    btn.textContent = \x27Send Request\x27;
   }
 
   function updateStats() {
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statOk').textContent = ok;
-    document.getElementById('statFail').textContent = fail;
+    document.getElementById(\x27statTotal\x27).textContent = total;
+    document.getElementById(\x27statOk\x27).textContent = ok;
+    document.getElementById(\x27statFail\x27).textContent = fail;
     const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
-    document.getElementById('statAvg').textContent = avg + 'ms';
+    document.getElementById(\x27statAvg\x27).textContent = avg + \x27ms\x27;
   }
 
   function syntaxHighlight(obj) {
     const json = JSON.stringify(obj, null, 2);
     return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
-      let cls = 'num';
+      let cls = \x27num\x27;
       if (/^"/.test(match)) {
-        cls = /:$/.test(match) ? 'key' : 'str';
+        cls = /:$/.test(match) ? \x27key\x27 : \x27str\x27;
       } else if (/true|false/.test(match)) {
-        cls = 'bool';
+        cls = \x27bool\x27;
       } else if (/null/.test(match)) {
-        cls = 'null';
+        cls = \x27null\x27;
       }
       return `<span class="${cls}">${escHtml(match)}</span>`;
     });
   }
 
   function escHtml(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return s.replace(/&/g, \x27&amp;\x27).replace(/</g, \x27&lt;\x27).replace(/>/g, \x27&gt;\x27);
   }
 
   function copyRes(id) {
-    const el = document.querySelector('#res-' + id + ' .res-json');
+    const el = document.querySelector(\x27#res-\x27 + id + \x27 .res-json\x27);
     navigator.clipboard.writeText(el.textContent).then(() => {
-      const btn = el.nextElementSibling.querySelector('.copy-btn');
-      btn.textContent = '✅ Copied!';
-      setTimeout(() => btn.textContent = '📋 Copy Response', 1500);
+      const btn = el.nextElementSibling.querySelector(\x27.copy-btn\x27);
+      btn.textContent = \x27? Copied!\x27;
+      setTimeout(() => btn.textContent = \x27?? Copy Response\x27, 1500);
     });
   }
 
   function copyEl(el) {
     navigator.clipboard.writeText(el.textContent).then(() => {
-      el.style.borderColor = 'var(--green)';
-      setTimeout(() => el.style.borderColor = '', 1000);
+      el.style.borderColor = \x27var(--green)\x27;
+      setTimeout(() => el.style.borderColor = \x27\x27, 1000);
     });
   }
 
-  // Replace {{origin}} in curl commands
-  document.querySelectorAll('.curl-code').forEach(el => {
+  document.querySelectorAll(\x27.curl-code\x27).forEach(el => {
     el.textContent = el.textContent.replace(/\{\{origin\}\}/g, origin);
   });
 </script>
 </body>
 </html>
+
