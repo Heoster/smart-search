@@ -46,8 +46,7 @@ export async function callLLM(prompt, maxTokens = 800) {
           model: model,
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.2,
-          max_tokens: maxTokens,
-          response_format: { type: 'json_object' }
+          max_tokens: maxTokens
         })
       });
 
